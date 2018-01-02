@@ -1,0 +1,7 @@
+/home/giuseppe/cache_database/Financial1_small.spc
+/home/giuseppe/cache_database/Financial1_miniature.spc
+/home/giuseppe/cache_database/Financial2_small.spc
+/home/giuseppe/cache_database/Financial1.spc
+/home/giuseppe/cache_database/Financial2.spc
+/home/giuseppe/cache_database/webusers/webusers-030409-033109.1.blkparse
+/home/giuseppe/cache_database/WebSearch1_small.spc
