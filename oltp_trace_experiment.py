@@ -16,6 +16,8 @@ from algorithms.ExpertLearning_v2 import ExpertLearning_v2
 from algorithms.ExpertLearning_v3 import ExpertLearning_v3
 from algorithms.RANDOM import RANDOM
 from algorithms.ANN1 import ANN1
+from algorithms.BANDIT import BANDIT
+
 
 
 from lib.random_graph import Graph
@@ -64,7 +66,6 @@ if __name__ == "__main__" :
         max_column_height = 0
         
         for name in algorithm :
-            print(name)
             lower_name = name.lower()
             if lower_name == 'arc' :
                 algo = ARC(cache_size)
@@ -98,6 +99,9 @@ if __name__ == "__main__" :
                 M  = trace_obj.unique_pages()
                 print('M = ', M)
                 algo = ANN1(M, cache_size)
+            elif lower_name == 'bandit' :
+                algo = BANDIT(cache_size)
+                
 
             hits, part_hit_rate, hit_sum = algo.test_algorithm(pages)
 

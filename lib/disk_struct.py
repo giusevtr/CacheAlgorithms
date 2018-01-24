@@ -17,6 +17,7 @@ class Disk :
         while self.current < len(self.L) and self.deleted[self.current] == True:
             self.current += 1
         if self.current >= len(self.L):
+            self.current = 0
             raise StopIteration
         page = self.L[self.current]
         self.current += 1
