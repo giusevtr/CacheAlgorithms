@@ -31,11 +31,9 @@ class BANDIT(page_replacement_algorithm):
         
         
         ## Config variables
-        self.batchsize = N
-        self.numbatch = 5
         self.decayRate = 0.99
-        self.reduceErrorRate = 0.975
         self.epsilon = 0.5
+        self.lamb = 0.05
         
         ## 
         self.accessedTime = {}
@@ -53,19 +51,26 @@ class BANDIT(page_replacement_algorithm):
 
     def updateWeight(self, cost):
         self.W = self.W * (1-self.epsilon * cost)
-        self.W = self.W / np.sum(self.W)
         
+        
+        
+        self.W = self.W / np.sum(self.W)
+#         print('W = ', self.W)
     def __keyWithMinVal(self,d):
         v=list(d.values())
         k=list(d.keys())
         return k[v.index(min(v))]
     
-    def chooseRandom(self,distribution):
+    def getQ(self):
+        return (1-self.lamb) * self.W + self.lamb*np.ones(2)/2
+    
+    def chooseRandom(self):
+        q = self.getQ(self.W)
         r = np.random.rand()
-        for i,p in enumerate(distribution):
+        for i,p in enumerate(q):
             if r < p:
                 return i 
-        return len(distribution)-1
+        return len(q)-1
     
     def getMinValueFromCache(self, values):
         minpage,first = -1, True
@@ -80,11 +85,22 @@ class BANDIT(page_replacement_algorithm):
         f = self.getMinValueFromCache(self.frequency)
         
         if r == f :
-            return r,False
+            return r,-1
         if policy == 0:
-            return r,True
-        return f, True
+            return r,0
+        return f, 1
     
+    def countUniquePagesSince(self, t):
+        cnt = 0
+        for p in self.Cache :
+            if self.accessedTime[p] > t :
+                cnt += 1
+        for p in self.Hist :
+            if self.accessedTime[p]>t :
+                cnt +=1
+        return cnt
+        
+        
     ########################################################################################################################################
     ####REQUEST#############################################################################################################################
     ########################################################################################################################################
@@ -106,26 +122,44 @@ class BANDIT(page_replacement_algorithm):
             
             if page in self.Hist :
                 self.Hist.delete(page)
+                
                 ## Update weights
+                poly = self.policyUsed[page]
+                uniq = self.countUniquePagesSince(self.accessedTime[page])
+                
+                cost = np.array([0,0], dtype=np.float32)
+                if poly == 0 :
+                    cost[0] = 1
+                if poly == 1:
+                    cost[1] = 1
+                cost = cost * (1.0 / uniq)
+                
+                self.updateWeight(cost)
+                
+                del self.evictionTime[page]
+                del self.accessedTime[page]
+                del self.frequency[page]
+                del self.policyUsed[page]
                 
             ## Remove from Hist
             if self.Hist.size() == self.N:
                 evictPage = self.Hist.getIthPage(0)
                 self.Hist.delete(evictPage)
+                
+                ## Update weights
                 del self.evictionTime[evictPage]
                 del self.accessedTime[evictPage]
                 del self.frequency[evictPage]
-                ## Update weights
+                del self.policyUsed[evictPage]
             
             ## Remove from Cache
             if self.Cache.size() == self.N:
                 act = self.chooseRandom(self.W)
                 
-                evictPage,train = self.selectEvictPage(act)
+                evictPage,self.policyUsed[evictPage] = self.selectEvictPage(act)
                 
                 self.Cache.delete(evictPage)
                 self.evictionTime[evictPage] = self.time
-                self.policyUsed[evictPage] = act
                 
                 self.Hist.add(evictPage)
                 
