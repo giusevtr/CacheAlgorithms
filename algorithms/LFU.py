@@ -1,6 +1,8 @@
 import random
 import sys
 from algorithms.page_replacement_algorithm import  page_replacement_algorithm
+
+from lib.disk_struct import Disk
 # sys.path.append(os.path.abspath("/home/giuseppe/))
 
 ## Keep a LRU list.
@@ -10,42 +12,47 @@ from algorithms.page_replacement_algorithm import  page_replacement_algorithm
 ##      Evict an unmark page with the probability proportional to its position in the LRU list.
 class LFU(page_replacement_algorithm):
 
-    def __init__(self, N):
-        self.T = []
+    def __init__(self, N,decay=0.99):
+        self.T = Disk(N)
         self.N = N
-        self.freq = {}
-
+        self.frequency = {}
+        self.decayRate = decay
+        
     def get_N(self) :
         return self.N
 
+
+    def getMinValueFromCache(self, values):
+        minpage,first = -1, True
+        for q in self.T :
+            if first or values[q] < values[minpage] :
+                minpage,first=q,False
+        return minpage
+    
     def request(self,page) :
         page_fault = False
-        if page in self.freq :
-            self.freq[page] += 1
+        
+        if page in self.T :
+            page_fault = False
         else :
             #if len(self.T)  == self.N :
-            if len(sel.freq) == self.N:
+            if self.T.size() == self.N:
                 ## Remove LRU page
-                first = True
-                for q in self.freq :
-                    freq = self.freq[q]
-                    if first :
-                        lfu = q
-                        first = False
-                    if freq < self.freq[lfu] :
-                        lfu = freq
-
-                self.freq.pop(lfu)
+                lfu = self.getMinValueFromCache(self.frequency)
+                self.T.delete(lfu)
+                del self.frequency[lfu]
+                
             # Add page to the MRU position
-            self.freq[page] = 1
+            self.frequency[page] = 0
+            self.T.add(page)
             page_fault = True
-
+        
+        for q in self.T :
+            self.frequency[q] *= self.decayRate
+        self.frequency[page] += 1
+        
         return page_fault
 
-    def set_data(dicc) :
-        self.freq.clear()
-        for page in dicc :
-            self.freq[page] = dicc[page]
 
     def get_data(self):
         # data = []
