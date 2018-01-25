@@ -4,6 +4,7 @@ import numpy as np
 from algorithms.OPT import OPT
 from algorithms.ARCOPT import ARCOPT
 from algorithms.LRU import LRU
+from algorithms.LFU import LFU
 from algorithms.ARC import ARC
 from algorithms.MARKING import MARKING
 from algorithms.WALK_MARKING_SLOW import WALK_MARKING_SLOW
@@ -45,7 +46,7 @@ if __name__ == "__main__" :
 
 
     for file_numer, file_name in enumerate(f):
-        if file_numer not in {0} :
+        if file_numer not in {2} :
             continue
 
         file_name = file_name[:-1]
@@ -77,6 +78,12 @@ if __name__ == "__main__" :
                 algo = OPT(cache_size, pages)
             elif lower_name == 'lru' :
                 algo = LRU(cache_size)
+            elif lower_name == 'lfu' :
+                algo = LFU(cache_size)
+            elif lower_name == 'lfu1' :
+                algo = LFU(cache_size,decay=1)
+            elif lower_name == 'lfu2' :
+                algo = LFU(cache_size,decay=0.9)
             elif lower_name == 'pagerank_fast' :
                 algo = PAGERANK_MARKING_FAST(cache_size)
             elif lower_name == 'pagerank_slow' :

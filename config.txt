@@ -1,3 +1,6 @@
+/home/giuseppe/cache_database/Financial1_20K.spc
+/home/giuseppe/cache_database/Financial1_50K.spc
+/home/giuseppe/cache_database/Financial1_100K.spc
 /home/giuseppe/cache_database/Financial1_small.spc
 /home/giuseppe/cache_database/Financial1_miniature.spc
 /home/giuseppe/cache_database/Financial2_small.spc
