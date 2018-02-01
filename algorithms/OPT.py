@@ -1,5 +1,5 @@
 import sys
-import queue
+import Queue
 from algorithms.page_replacement_algorithm import  page_replacement_algorithm
 from lib.treeset import TreeSet
 
@@ -20,7 +20,7 @@ class OPT(page_replacement_algorithm):
 
         for i,p in enumerate(traces) :
             if p not in self.page_request_time :
-                self.page_request_time[p] = queue()
+                self.page_request_time[p] = Queue.Queue()
 
             self.page_request_time[p].put(i)
 

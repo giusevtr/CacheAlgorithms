@@ -269,24 +269,3 @@ class ExpertLearning_v3(page_replacement_algorithm):
     def get_list_labels(self) :
         return ['L']
 
-if __name__ == "__main__" :
-    if len(sys.argv) < 2 :
-        print("Error: Must supply cache size.")
-        print("usage: python3 [cache_size]")
-        exit(1)
-
-    n = int(sys.argv[1])
-    print("cache size ", n)
-
-    marking = LRU(n)
-    page_fault_count = 0
-    page_count = 0
-    for line in sys.stdin:
-        #print("request: ", line)
-        if marking.request(line) :
-            page_fault_count += 1
-        page_count += 1
-
-
-    print("page count = ", page_count)
-    print("page faults = ", page_fault_count)

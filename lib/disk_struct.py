@@ -8,12 +8,12 @@ class Disk :
         self.L = []
         self.deleted = []
         self.page_in_disk_count = 0
-        self.R = [0 for i in range(0,2*self.N)]
+        self.R = [0 for _ in range(0,2*self.N)]
         self.current = 0
 
     def __iter__(self) :
         return self
-    def __next__(self): # Python 3: def __next__(self)
+    def next(self): # Python 3: def __next__(self)
         while self.current < len(self.L) and self.deleted[self.current] == True:
             self.current += 1
         if self.current >= len(self.L):

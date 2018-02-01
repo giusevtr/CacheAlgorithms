@@ -1,7 +1,7 @@
 import sys
 from lib.disk_struct import Disk
 from algorithms.page_replacement_algorithm import  page_replacement_algorithm
-import queue
+import Queue
 
 ## Keep a LRU list.
 ## Page hits:

@@ -1,12 +1,6 @@
-import random
-import sys
 from lib.disk_struct import Disk
 from algorithms.page_replacement_algorithm import  page_replacement_algorithm
-import tensorflow as tf
-import queue
-from collections import deque
 import numpy as np
-from collections import Counter
 # import matplotlib.pyplot as plt
 import os
 os.environ['TF_CPP_MIN_LOG_LEVEL'] = '3'

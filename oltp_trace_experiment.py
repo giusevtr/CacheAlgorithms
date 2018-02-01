@@ -12,11 +12,11 @@ from algorithms.WALK_MARKING import WALK_MARKING
 from algorithms.PAGERANK_MARKING_SLOW import PAGERANK_MARKING_SLOW
 from algorithms.PAGERANK_MARKING_FAST import PAGERANK_MARKING_FAST
 from algorithms.FAR import FAR
-from algorithms.ExpertLearning import ExpertLearning
-from algorithms.ExpertLearning_v2 import ExpertLearning_v2
-from algorithms.ExpertLearning_v3 import ExpertLearning_v3
+# from algorithms.ExpertLearning import ExpertLearning
+# from algorithms.ExpertLearning_v2 import ExpertLearning_v2
+# from algorithms.ExpertLearning_v3 import ExpertLearning_v3
+# from algorithms.ANN1 import ANN1
 from algorithms.RANDOM import RANDOM
-from algorithms.ANN1 import ANN1
 from algorithms.BANDIT import BANDIT
 from algorithms.BANDIT2 import BANDIT2
 from algorithms.BANDIT3 import BANDIT3
@@ -45,11 +45,12 @@ if __name__ == "__main__" :
     ###############################################################
     trace_obj = Trace()
     f = open('config.txt', 'r')
-
-
+    
+    DB = {6,7,8}
+    num_db = len(DB)
     subplot = 0 
     for file_numer, file_name in enumerate(f):
-        if file_numer not in {0} :
+        if file_numer not in DB :
             continue
         subplot += 1
 
@@ -63,7 +64,7 @@ if __name__ == "__main__" :
         num_pages = len(pages)
 
         # print('name\t\thit ratio\t\thit count\ttotal request\tunique pages')
-        print("{:<20} {:<20} {:<20} {:<20} {:<20} {:<20}".format("Name","Hit Ratio(%)", "Hit Count", "Total Request","Unique Pages" , "Partition Hit-Rates") )
+        print("{:<20} {:<20} {:<20} {:<20} {:<20}".format("Name","Hit Ratio(%)", "Hit Count", "Total Request","Unique Pages" ) )
 
         colors = ['y','b','r','k','g']
         color_id = 0
@@ -99,18 +100,8 @@ if __name__ == "__main__" :
                 algo = WALK_MARKING_SLOW(cache_size)
             elif lower_name == 'far' :
                 algo = FAR(cache_size)
-            elif lower_name == 'expertlearning' :
-                algo = ExpertLearning(cache_size)
-            elif lower_name == 'expertlearning_v2' :
-                algo = ExpertLearning_v2(cache_size)
-            elif lower_name == 'expertlearning_v3' :
-                algo = ExpertLearning_v3(cache_size)
             elif lower_name == 'random' :
                 algo = RANDOM(cache_size)
-            elif lower_name == 'ann1' :
-                M  = trace_obj.unique_pages()
-                print('M = ', M)
-                algo = ANN1(M, cache_size)
             elif lower_name == 'bandit' :
                 algo = BANDIT(cache_size)
             elif lower_name == 'bandit2' :
@@ -121,27 +112,12 @@ if __name__ == "__main__" :
             hits, part_hit_rate, hit_sum = algo.test_algorithm(pages, partition_size=200)
             
             
-            if lower_name == 'bandit3' or lower_name == 'bandit2':
-                plt.subplot(2,2,subplot)
-#                 plt.title('s')
+            if lower_name == 'bandit' or lower_name == 'bandit2' or lower_name == 'bandit3':
+                plt.subplot(2,num_db,subplot)
+                plt.suptitle('%s internal state' % lower_name)
                 algo.vizualize(plt)
             
-            ## Plot algorithm
-            X = np.arange(0, len(hit_sum),1)
-#             l, = plt.plot(X, hit_sum, colors[color_id]+'-',label=name)
-#             labels.append(l)
-            
-#             plt.subplot(2,2,subplot+2)
-            
-#             T = np.array(range(0,len(part_hit_rate)))
-#             l, = plt.plot(T, part_hit_rate, colors[color_id]+'-',label=name)
-#             labels.append(l)
-#             color_id += 1
-            
             data.append(part_hit_rate)
-            
-#             print(hit_sum)
-            max_column_height = max(max_column_height, hit_sum[-1])
 
             # print('%s\t%f\t\t%d\t\t%d\t\t%d' % (lower_name, 100.0 * hits / num_pages, hits, num_pages, trace_obj.unique_pages()))
             print("{:<20} {:<20} {:<20} {:<20}  {:<20}".format(lower_name, round(100.0 * hits / num_pages,2), hits, num_pages, trace_obj.unique_pages()))
@@ -150,7 +126,8 @@ if __name__ == "__main__" :
 
         print('=====================================================')
 
-        plt.subplot(2,2,subplot+2)
+        plt.subplot(2,num_db,subplot+num_db)
+        plt.suptitle(file_name)
         data = np.array(data).T
         col = data.shape[1]
         T = np.array(range(0,len(data)))
