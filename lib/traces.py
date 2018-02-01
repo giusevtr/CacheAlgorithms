@@ -111,7 +111,12 @@ class Trace:
                     self.traces.append(j)
                     self.node_set.add(j)
                     node_name += page_size
- 
+        elif file_name.endswith('.txt') :
+            for line in f :
+                x = int(line)
+                self.traces.append(x)
+            
+            
     def number_of_request(self):
         return len(self.traces)
 

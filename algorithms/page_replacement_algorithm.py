@@ -14,8 +14,11 @@ class page_replacement_algorithm :
         return str(page)
     def get_N(self) :
         raise('Need to implement this method')
-
-    def test_algorithm(self,pages,  partitions = 4) :
+    
+    def vizualize(self, plt):
+        pass
+    
+    def test_algorithm(self,pages,  partition_size = 10) :
         hits = 0
         last_percent = -1
         num_pages = len(pages)
@@ -25,7 +28,6 @@ class page_replacement_algorithm :
         part_hits = 0
         part_count = 0
 
-        partition_size =  int((num_pages - N) / partitions)
         partition_hit_rate = []
         hit_sum = []
 

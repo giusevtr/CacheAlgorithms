@@ -7,7 +7,7 @@ import queue
 from collections import deque
 import numpy as np
 from collections import Counter
-import matplotlib.pyplot as plt
+# import matplotlib.pyplot as plt
 import os
 os.environ['TF_CPP_MIN_LOG_LEVEL'] = '3'
 # sys.path.append(os.path.abspath("/home/giuseppe/))
@@ -17,7 +17,7 @@ os.environ['TF_CPP_MIN_LOG_LEVEL'] = '3'
 ##      Every time we get a page hit, mark the page and also move it to the MRU position
 ## Page faults:
 ##      Evict an unmark page with the probability proportional to its position in the LRU list.
-class BANDIT(page_replacement_algorithm):
+class BANDIT3(page_replacement_algorithm):
 
     def __init__(self, N):
         self.N = N
@@ -26,10 +26,13 @@ class BANDIT(page_replacement_algorithm):
         
         ## Config variables
         self.decayRate = 0.99
-        self.epsilon = 0.99
+        self.epsilon = 0.95
         self.lamb = 0.05
-        
+        self.learning_phase = 2*N
+        self.error_discount_rate = (0.005)**(1.0/N)
         ## 
+        self.learning = True
+        self.policy = 0
         self.accessedTime = {}
         self.frequency = {}
         self.evictionTime = {}
@@ -44,31 +47,22 @@ class BANDIT(page_replacement_algorithm):
         self.Y1 = np.array([])
         self.Y2 = np.array([])
         
-        
-        
     def get_N(self) :
         return self.N
-
     
-    def vizualize(self):
-        l1, = plt.plot(self.X,self.Y1, 'b-', label='W0')
-        l2, = plt.plot(self.X,self.Y2, 'r-', label='W1')
+    def vizualize(self, plt):
+        l1, = plt.plot(self.X,self.Y1, 'b-', label='W_lru')
+        l2, = plt.plot(self.X,self.Y2, 'r-', label='W_lfu')
         plt.xlabel('time')
-        plt.ylabel('W')
+        plt.ylabel('Weight')
         plt.legend(handles=[l1,l2])
-        plt.show()
-    
+#         plt.show()
         
 #         print('W = ', self.W)
     def __keyWithMinVal(self,d):
         v=list(d.values())
         k=list(d.keys())
         return k[v.index(min(v))]
-    
-    
-    
-    
-        
     
     def getMinValueFromCache(self, values):
         minpage,first = -1, True
@@ -96,6 +90,13 @@ class BANDIT(page_replacement_algorithm):
             if self.accessedTime[p]>t :
                 cnt +=1
         return cnt
+    
+    def posInHist(self, t):
+        cnt = 0
+        for p in self.Hist :
+            if self.accessedTime[p]>t :
+                cnt +=1
+        return cnt
         
     def getQ(self):
         return (1-self.lamb) * self.W + self.lamb*np.ones(2)/2
@@ -114,7 +115,6 @@ class BANDIT(page_replacement_algorithm):
         self.W = self.W * (1-self.epsilon * cost)
         self.W = self.W / np.sum(self.W)
     
- 
     ########################################################################################################################################
     ####REQUEST#############################################################################################################################
     ########################################################################################################################################
@@ -125,9 +125,14 @@ class BANDIT(page_replacement_algorithm):
         ## Save data for training ##
         ############################
 
+        if self.time % self.learning_phase == 0 :
+            self.learning = not self.learning
+        
+        ## Visualization data
+        prob = self.getQ()
         self.X = np.append(self.X, self.time)
-        self.Y1 = np.append(self.Y1, self.W[0])
-        self.Y2 = np.append(self.Y2, self.W[1])
+        self.Y1 = np.append(self.Y1, prob[0])
+        self.Y2 = np.append(self.Y2, prob[1])
 
         #########################
         ## Process page reques ##
@@ -136,52 +141,64 @@ class BANDIT(page_replacement_algorithm):
             page_fault = False
         else :
             
-            if page in self.Hist :
-                self.Hist.delete(page)
-                
-                ## Update weights
-                poly = self.policyUsed[page]
-                q = self.qUsed[page]
-                uniq = self.countUniquePagesSince(self.accessedTime[page])
-                
-                cost = np.array([0,0], dtype=np.float32)
-                if poly == 0 :
-                    cost[0] = 1
-                if poly == 1:
-                    cost[1] = 1
-                if uniq < self.N :    
-                    cost = cost * (1.0 / uniq)
-                self.updateWeight(cost)
-                
-                del self.evictionTime[page]
-                del self.accessedTime[page]
-                del self.frequency[page]
-                del self.policyUsed[page]
-                del self.qUsed[page]
-                
-            ## Remove from Hist
-            if self.Hist.size() == self.N:
-                evictPage = self.Hist.getIthPage(0)
-                self.Hist.delete(evictPage)
-                
-                ## Update weights
-                del self.evictionTime[evictPage]
-                del self.accessedTime[evictPage]
-                del self.frequency[evictPage]
-                del self.policyUsed[evictPage]
-                del self.qUsed[evictPage]
+            pageevict = None
             
+            if page in self.Hist :
+                pageevict = page
+            elif self.Hist.size() == self.N:
+                pageevict = self.Hist.getIthPage(0)
+                
+            if pageevict is not None :
+                self.Hist.delete(pageevict)
+                ## Update weights
+                poly = self.policyUsed[pageevict]
+                q = self.qUsed[pageevict]
+#                 uniq = self.countUniquePagesSince(self.evictionTime[pageevict]) + 1
+#                 uniq = self.posInHist(self.evictionTime[pageevict]) + 1
+                
+                
+                
+                err = self.error_discount_rate ** (self.time - self.evictionTime[pageevict])
+                reward = np.array([0,0], dtype=np.float32)
+                if poly == 0 :
+                    reward[1] = err
+                if poly == 1:
+                    reward[0] = err
+                
+                reward_hat = reward / q
+                
+#                 if self.learning :
+                self.W = self.W * np.exp(self.lamb * reward_hat / 2)
+                self.W = self.W / np.sum(self.W)
+                
+#                 self.updateWeight(reward)
+                
+                del self.evictionTime[pageevict]
+                del self.accessedTime[pageevict]
+                del self.frequency[pageevict]
+                del self.policyUsed[pageevict]
+                del self.qUsed[pageevict]
+                
             ## Remove from Cache
             if self.Cache.size() == self.N:
-                act = self.chooseRandom()
+                
+                train = False
+                if  not self.learning :
+                    act = np.argmax(self.getQ())
+                else :
+                    act = self.chooseRandom()
+                    train = True
                 
                 evictPage,self.policyUsed[evictPage] = self.selectEvictPage(act)
                 self.qUsed[evictPage] = self.getQ()
                 
                 self.Cache.delete(evictPage)
                 self.evictionTime[evictPage] = self.time
-                
+#                 print('act = ', act)
                 self.Hist.add(evictPage)
+                
+                if not train :
+                    self.policyUsed[evictPage] = -1
                 
             self.frequency[page] = 0
             self.Cache.add(page)

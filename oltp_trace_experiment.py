@@ -18,16 +18,18 @@ from algorithms.ExpertLearning_v3 import ExpertLearning_v3
 from algorithms.RANDOM import RANDOM
 from algorithms.ANN1 import ANN1
 from algorithms.BANDIT import BANDIT
-
+from algorithms.BANDIT2 import BANDIT2
+from algorithms.BANDIT3 import BANDIT3
 
 
 from lib.random_graph import Graph
 from lib.traces import Trace
 
 import matplotlib.pyplot as plt
+import matplotlib.patches as mpatches
 
 if __name__ == "__main__" :
-
+    print('debug')
     if len(sys.argv) < 3 :
         print('Must provide 2 arguments')
         print('First argument is the cache size.')
@@ -45,9 +47,11 @@ if __name__ == "__main__" :
     f = open('config.txt', 'r')
 
 
+    subplot = 0 
     for file_numer, file_name in enumerate(f):
-        if file_numer not in {2} :
+        if file_numer not in {0} :
             continue
+        subplot += 1
 
         file_name = file_name[:-1]
         # print('Reading file: ', file_name)
@@ -66,6 +70,7 @@ if __name__ == "__main__" :
         labels = []
         max_column_height = 0
         
+        data = []
         for name in algorithm :
             lower_name = name.lower()
             if lower_name == 'arc' :
@@ -108,56 +113,63 @@ if __name__ == "__main__" :
                 algo = ANN1(M, cache_size)
             elif lower_name == 'bandit' :
                 algo = BANDIT(cache_size)
-                
+            elif lower_name == 'bandit2' :
+                algo = BANDIT2(cache_size)
+            elif lower_name == 'bandit3' :
+                algo = BANDIT3(cache_size)    
 
-            hits, part_hit_rate, hit_sum = algo.test_algorithm(pages)
-
+            hits, part_hit_rate, hit_sum = algo.test_algorithm(pages, partition_size=200)
+            
+            
+            if lower_name == 'bandit3' or lower_name == 'bandit2':
+                plt.subplot(2,2,subplot)
+#                 plt.title('s')
+                algo.vizualize(plt)
+            
             ## Plot algorithm
             X = np.arange(0, len(hit_sum),1)
-            l, = plt.plot(X, hit_sum, colors[color_id]+'-',label=name)
-            labels.append(l)
-            color_id += 1
-
+#             l, = plt.plot(X, hit_sum, colors[color_id]+'-',label=name)
+#             labels.append(l)
+            
+#             plt.subplot(2,2,subplot+2)
+            
+#             T = np.array(range(0,len(part_hit_rate)))
+#             l, = plt.plot(T, part_hit_rate, colors[color_id]+'-',label=name)
+#             labels.append(l)
+#             color_id += 1
+            
+            data.append(part_hit_rate)
+            
+#             print(hit_sum)
             max_column_height = max(max_column_height, hit_sum[-1])
 
             # print('%s\t%f\t\t%d\t\t%d\t\t%d' % (lower_name, 100.0 * hits / num_pages, hits, num_pages, trace_obj.unique_pages()))
-            print("{:<20} {:<20} {:<20} {:<20}  {:<20}".format(lower_name, round(100.0 * hits / num_pages,2), hits, num_pages, trace_obj.unique_pages()) , part_hit_rate)
+            print("{:<20} {:<20} {:<20} {:<20}  {:<20}".format(lower_name, round(100.0 * hits / num_pages,2), hits, num_pages, trace_obj.unique_pages()))
 
             sys.stdout.flush()
 
         print('=====================================================')
 
-
-        ####################################################################################3
-        ## Count unique pages
-        ## Unique pages
-        N = len(pages)
-
-        unique_page_set = set()
-        number_of_blocks = 100
-        unique_page_block_size = N / number_of_blocks
-
-        X = np.array([-unique_page_block_size/2])
-        Y = np.array([0])
-
-        for ith_page, page in enumerate(pages) :
-            unique_page_set.add(page)
-
-            if ith_page % unique_page_block_size == 0 :
-                col_position = X[-1] + unique_page_block_size
-                col_height = len(unique_page_set)
-                # print col_position,col_height
-
-                X = np.append(X, col_position)
-                Y = np.append(Y, col_height)
-
-                unique_page_set.clear()
-
-        Y2 = ((1.0 * Y / max(Y)) * max_column_height)
-        plt.bar(X,Y2,alpha=0.4, width = unique_page_block_size, color='r')
-        #print X,Y2
-        ####################################################################################3
-
-
+        plt.subplot(2,2,subplot+2)
+        data = np.array(data).T
+        col = data.shape[1]
+        T = np.array(range(0,len(data)))
+        for i in range(0,col-1):
+#             plt.fill(T, data[:,i], colors[i],alpha=0.3)
+            plt.fill_between(T, 0,data[:,i], facecolor=colors[i],alpha=0.3,label=algorithm[i])
+#             plt.fill_between(T, 0,data[:,i])
+        
+        
+        lru_patch = mpatches.Patch(color=colors[0], label=algorithm[0])
+        lfu_patch = mpatches.Patch(color=colors[1], label=algorithm[1])
+        
+        l, = plt.plot(T,data[:,2], colors[2]+'-', label=algorithm[2])
+        labels.append(lru_patch)
+        labels.append(lfu_patch)
+        labels.append(l)
+        plt.xlabel('Request Window Number (200 request)')
+        plt.ylabel('Hit Rate')
+        
         plt.legend(handles=labels)
-        #plt.show()
+        
+    plt.show()
