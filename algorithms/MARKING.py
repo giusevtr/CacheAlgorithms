@@ -30,21 +30,17 @@ class MARKING(page_replacement_algorithm):
             if self.M.size() == self.N :
                 if self.U.size() is not 0 :
                     raise Exception('Error. disk U should be empty')
-                for marked_page in self.M.get_data() :
+                for marked_page in self.M :
                     self.U.add(marked_page)
-                for unmarked_page in self.U.get_data() :
+                for unmarked_page in self.U:
                     self.M.delete(unmarked_page)
 
             if self.M.size() + self.U.size() == self.N :
                 ## Get the set of unmarked pages
-                # U = set(self.T.get_data()) - self.marked
-
                 ## Choose a random page from the set of unmarked pages
                 evit_page = self.U.randomChoose()
-                # print 'delete', evit_page
                 self.U.delete(evit_page)
 
-            # print 'adding ', page
             ## Mark page and add to T
             self.M.add(page)
 

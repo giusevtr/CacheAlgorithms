@@ -1,8 +1,8 @@
 import sys
 import os
 import numpy as np
-from algorithms.OPT import OPT
-from algorithms.ARCOPT import ARCOPT
+# from algorithms.OPT import OPT
+# from algorithms.ARCOPT import ARCOPT
 from algorithms.LRU import LRU
 from algorithms.LFU import LFU
 from algorithms.ARC import ARC
@@ -29,7 +29,6 @@ import matplotlib.pyplot as plt
 import matplotlib.patches as mpatches
 
 if __name__ == "__main__" :
-    print('debug')
     if len(sys.argv) < 3 :
         print('Must provide 2 arguments')
         print('First argument is the cache size.')
@@ -45,10 +44,10 @@ if __name__ == "__main__" :
     ###############################################################
     trace_obj = Trace()
     f = open('config.txt', 'r')
-    
-    DB = {6,7,8}
+
+    DB = {8}
     num_db = len(DB)
-    subplot = 0 
+    subplot = 0
     for file_numer, file_name in enumerate(f):
         if file_numer not in DB :
             continue
@@ -70,18 +69,18 @@ if __name__ == "__main__" :
         color_id = 0
         labels = []
         max_column_height = 0
-        
+
         data = []
         for name in algorithm :
             lower_name = name.lower()
             if lower_name == 'arc' :
                 algo = ARC(cache_size)
-            elif lower_name == 'arcopt' :
-                algo = ARCOPT(cache_size, pages)
+#             elif lower_name == 'arcopt' :
+#                 algo = ARCOPT(cache_size, pages)
             elif lower_name == 'marking' :
                 algo = MARKING(cache_size)
-            elif lower_name == 'opt' :
-                algo = OPT(cache_size, pages)
+#             elif lower_name == 'opt' :
+#                 algo = OPT(cache_size, pages)
             elif lower_name == 'lru' :
                 algo = LRU(cache_size)
             elif lower_name == 'lfu' :
@@ -107,16 +106,16 @@ if __name__ == "__main__" :
             elif lower_name == 'bandit2' :
                 algo = BANDIT2(cache_size)
             elif lower_name == 'bandit3' :
-                algo = BANDIT3(cache_size)    
+                algo = BANDIT3(cache_size)
 
             hits, part_hit_rate, hit_sum = algo.test_algorithm(pages, partition_size=200)
-            
-            
+
+
             if lower_name == 'bandit' or lower_name == 'bandit2' or lower_name == 'bandit3':
                 plt.subplot(2,num_db,subplot)
                 plt.suptitle('%s internal state' % lower_name)
                 algo.vizualize(plt)
-            
+
             data.append(part_hit_rate)
 
             # print('%s\t%f\t\t%d\t\t%d\t\t%d' % (lower_name, 100.0 * hits / num_pages, hits, num_pages, trace_obj.unique_pages()))
@@ -131,22 +130,21 @@ if __name__ == "__main__" :
         data = np.array(data).T
         col = data.shape[1]
         T = np.array(range(0,len(data)))
-        for i in range(0,col-1):
+        for i in range(0,col):
+            print('color ' , colors[i])
 #             plt.fill(T, data[:,i], colors[i],alpha=0.3)
             plt.fill_between(T, 0,data[:,i], facecolor=colors[i],alpha=0.3,label=algorithm[i])
 #             plt.fill_between(T, 0,data[:,i])
-        
-        
-        lru_patch = mpatches.Patch(color=colors[0], label=algorithm[0])
-        lfu_patch = mpatches.Patch(color=colors[1], label=algorithm[1])
-        
-        l, = plt.plot(T,data[:,2], colors[2]+'-', label=algorithm[2])
-        labels.append(lru_patch)
-        labels.append(lfu_patch)
-        labels.append(l)
+            patch = mpatches.Patch(color=colors[i], label=algorithm[i])
+            labels.append(patch)
+
+#         lfu_patch = mpatches.Patch(color=colors[1], label=algorithm[1])
+
+#         l, = plt.plot(T,data[:,2], colors[2]+'-', label=algorithm[2])
+#         labels.append(l)
         plt.xlabel('Request Window Number (200 request)')
         plt.ylabel('Hit Rate')
-        
+
         plt.legend(handles=labels)
-        
+
     plt.show()

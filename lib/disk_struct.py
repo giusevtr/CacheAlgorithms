@@ -1,6 +1,6 @@
 import random
 
-class Disk :
+class Disk() :
 
     def __init__(self, N):
         self.N = N
@@ -12,12 +12,13 @@ class Disk :
         self.current = 0
 
     def __iter__(self) :
+        self.current = 0
         return self
+    
     def next(self): # Python 3: def __next__(self)
         while self.current < len(self.L) and self.deleted[self.current] == True:
             self.current += 1
         if self.current >= len(self.L):
-            self.current = 0
             raise StopIteration
         page = self.L[self.current]
         self.current += 1
@@ -178,7 +179,15 @@ if __name__ == "__main__" :
     print(d.getIthPage(2))
     print(d.getIthPage(3))
     print(d.getIthPage(4))
-
+ 
     print('iterator:')
     for p in d :
         print(p)
+
+    for q in d: 
+        print(q) 
+    for q in d:
+        print(q) 
+    
+    
+    
