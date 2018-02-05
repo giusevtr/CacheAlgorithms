@@ -1,8 +1,6 @@
 import sys
 import os
 import numpy as np
-# from algorithms.OPT import OPT
-# from algorithms.ARCOPT import ARCOPT
 from algorithms.LRU import LRU
 from algorithms.LFU import LFU
 from algorithms.ARC import ARC
@@ -12,19 +10,14 @@ from algorithms.WALK_MARKING import WALK_MARKING
 from algorithms.PAGERANK_MARKING_SLOW import PAGERANK_MARKING_SLOW
 from algorithms.PAGERANK_MARKING_FAST import PAGERANK_MARKING_FAST
 from algorithms.FAR import FAR
-# from algorithms.ExpertLearning import ExpertLearning
-# from algorithms.ExpertLearning_v2 import ExpertLearning_v2
-# from algorithms.ExpertLearning_v3 import ExpertLearning_v3
-# from algorithms.ANN1 import ANN1
 from algorithms.RANDOM import RANDOM
 from algorithms.BANDIT import BANDIT
 from algorithms.BANDIT2 import BANDIT2
 from algorithms.BANDIT3 import BANDIT3
 
-
+from algorithms.BANDIT_DOUBLE_HIST import BANDIT_DOUBLE_HIST
 from lib.random_graph import Graph
 from lib.traces import Trace
-
 import matplotlib.pyplot as plt
 import matplotlib.patches as mpatches
 
@@ -45,7 +38,7 @@ if __name__ == "__main__" :
     trace_obj = Trace()
     f = open('config.txt', 'r')
 
-    DB = {8}
+    DB = {1}
     num_db = len(DB)
     subplot = 0
     for file_numer, file_name in enumerate(f):
@@ -71,16 +64,13 @@ if __name__ == "__main__" :
         max_column_height = 0
 
         data = []
+        hit_rate = []
         for name in algorithm :
             lower_name = name.lower()
             if lower_name == 'arc' :
                 algo = ARC(cache_size)
-#             elif lower_name == 'arcopt' :
-#                 algo = ARCOPT(cache_size, pages)
             elif lower_name == 'marking' :
                 algo = MARKING(cache_size)
-#             elif lower_name == 'opt' :
-#                 algo = OPT(cache_size, pages)
             elif lower_name == 'lru' :
                 algo = LRU(cache_size)
             elif lower_name == 'lfu' :
@@ -107,44 +97,57 @@ if __name__ == "__main__" :
                 algo = BANDIT2(cache_size)
             elif lower_name == 'bandit3' :
                 algo = BANDIT3(cache_size)
+            elif lower_name == 'bandit_double_hist' :
+                algo = BANDIT_DOUBLE_HIST(cache_size)   
 
             hits, part_hit_rate, hit_sum = algo.test_algorithm(pages, partition_size=200)
-
-
-            if lower_name == 'bandit' or lower_name == 'bandit2' or lower_name == 'bandit3':
-                plt.subplot(2,num_db,subplot)
-                plt.suptitle('%s internal state' % lower_name)
-                algo.vizualize(plt)
+            
+            if lower_name.startswith('bandit'):
+                ax = plt.subplot(2,num_db,subplot)
+                ax.set_title('%s internal state' % lower_name)
+                algo.visualize(plt)
+                plt.axvline(x=20000)
 
             data.append(part_hit_rate)
-
+            hit_rate.append(round(100.0 * hits / num_pages,2))
             # print('%s\t%f\t\t%d\t\t%d\t\t%d' % (lower_name, 100.0 * hits / num_pages, hits, num_pages, trace_obj.unique_pages()))
             print("{:<20} {:<20} {:<20} {:<20}  {:<20}".format(lower_name, round(100.0 * hits / num_pages,2), hits, num_pages, trace_obj.unique_pages()))
 
             sys.stdout.flush()
+        data = np.array(data).T
 
         print('=====================================================')
 
-        plt.subplot(2,num_db,subplot+num_db)
-        plt.suptitle(file_name)
-        data = np.array(data).T
+        ax = plt.subplot(2,num_db,subplot+num_db)
+        ax.set_title('file name: %s\n' % file_name)
+        
         col = data.shape[1]
         T = np.array(range(0,len(data)))
-        for i in range(0,col):
-            print('color ' , colors[i])
-#             plt.fill(T, data[:,i], colors[i],alpha=0.3)
+        plt.axvline(x=data.shape[0]/2)
+        for i in range(0,col-1):
             plt.fill_between(T, 0,data[:,i], facecolor=colors[i],alpha=0.3,label=algorithm[i])
-#             plt.fill_between(T, 0,data[:,i])
             patch = mpatches.Patch(color=colors[i], label=algorithm[i])
             labels.append(patch)
+        l, = plt.plot(T,data[:,2], colors[col-1]+'-', label=algorithm[2])
+        labels.append(l)
 
-#         lfu_patch = mpatches.Patch(color=colors[1], label=algorithm[1])
-
-#         l, = plt.plot(T,data[:,2], colors[2]+'-', label=algorithm[2])
-#         labels.append(l)
-        plt.xlabel('Request Window Number (200 request)')
+        hit_rate_text = 'algorithm:  hit-rate\n'
+        for i in range(0, col) :
+            hit_rate_text += '%s:  %f\n' % (algorithm[i], hit_rate[i])
+        ax.annotate(hit_rate_text,(0.05,0.1),textcoords='axes fraction',alpha=0.7, size=12)
+        
+        
+        plt.xlabel('Request Window Number')
         plt.ylabel('Hit Rate')
 
         plt.legend(handles=labels)
-
+    
+    ## 
+    subtitle = ''
+    for i,al in enumerate(algorithm) :
+        subtitle += al
+        if i < len(algorithm)-1:
+            subtitle += ' vs '
+    plt.suptitle(subtitle)
+    
     plt.show()
