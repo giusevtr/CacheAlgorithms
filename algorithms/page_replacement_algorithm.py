@@ -15,7 +15,7 @@ class page_replacement_algorithm :
     def get_N(self) :
         raise('Need to implement this method')
     
-    def vizualize(self, plt):
+    def visualize(self, plt):
         pass
     
     def test_algorithm(self,pages,  partition_size = 10) :
