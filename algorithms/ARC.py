@@ -50,7 +50,7 @@ class ARC(page_replacement_algorithm):
                 r = self.B1.size() / self.B2.size()
             else :
                 r = 1
-            self.P = min(self.P - r, 0)
+            self.P = max(self.P - r, 0)
             self.__replace(page)
             self.B2.delete(page)
             if not self.T2.add(page) :
@@ -67,7 +67,8 @@ class ARC(page_replacement_algorithm):
                     self.B1.deleteFront()
                     self.__replace(page)
                 else :
-                    self.T1.deleteFront()
+                    t1 = self.T1.deleteFront()
+                    self.B1.add(t1)
             elif t1 + b1 < self.N :
                 if t1 + t2 + b1 + b2 >= self.N :
                     if t1 + t2 + b1 + b2 == 2 * self.N :
@@ -102,24 +103,4 @@ class ARC(page_replacement_algorithm):
     def get_list_labels(self) :
         return ['T1','T2','B1','B2']
 
-if __name__ == "__main__" :
-    if len(sys.argv) < 2 :
-        print("Error: Must supply cache size.")
-        print("usage: python3 [cache_size]")
-        exit(1)
 
-    n = int(sys.argv[1])
-    print("cache size ", n)
-
-    marking = LRU(n)
-    page_fault_count = 0
-    page_count = 0
-    for line in sys.stdin:
-        #print("request: ", line)
-        if marking.request(line) :
-            page_fault_count += 1
-        page_count += 1
-
-
-    print("page count = ", page_count)
-    print("page faults = ", page_fault_count)
