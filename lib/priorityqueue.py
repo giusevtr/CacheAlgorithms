@@ -13,7 +13,7 @@ class priorityqueue:
         self.__heap = [None for _ in range(0, self.__capacity+1)]
         self.__size = 0
         
-    def getSize(self):
+    def size(self):
         return self.__size
     
     def peaktop(self):
@@ -97,7 +97,7 @@ class priorityqueue:
                 self.__swap(par, i)
                 self.__moveup(par)
             
-    def contain(self, x):
+    def __contains__(self, x):
         return x in self.__freq
     
     def debug(self):
@@ -139,6 +139,8 @@ if __name__ == "__main__" :
     pq.increase(1)
     pq.increase(1)
     
+    
+    print(1 in pq)
     
     print(pq.peaktop())
 #     pq.popmin()

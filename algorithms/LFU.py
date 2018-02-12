@@ -27,7 +27,7 @@ class LFU(page_replacement_algorithm):
             page_fault = False
             self.PQ.increase(page)
         else :
-            if self.PQ.getSize() == self.N:
+            if self.PQ.size() == self.N:
                 ## Remove LRU page
                 self.PQ.popmin()
             self.PQ.add(page)
