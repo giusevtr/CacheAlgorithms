@@ -21,8 +21,8 @@ class LFU(page_replacement_algorithm):
     def request(self,page) :
         page_fault = False
         
-#         if page in self.PQ :
-        if self.PQ.contain(page) :
+        if page in self.PQ :
+#         if self.PQ.contain(page) :
         
             page_fault = False
             self.PQ.increase(page)
