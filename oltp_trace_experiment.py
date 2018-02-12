@@ -3,6 +3,7 @@ import os
 import numpy as np
 from algorithms.LRU import LRU
 from algorithms.LFU import LFU
+from algorithms.LFU_DECAY import LFU_DECAY
 from algorithms.ARC import ARC
 from algorithms.MARKING import MARKING
 from algorithms.WALK_MARKING_SLOW import WALK_MARKING_SLOW
@@ -14,9 +15,9 @@ from algorithms.RANDOM import RANDOM
 from algorithms.BANDIT import BANDIT
 from algorithms.BANDIT2 import BANDIT2
 from algorithms.BANDIT3 import BANDIT3
-
 from algorithms.BANDIT_DOUBLE_HIST import BANDIT_DOUBLE_HIST
-from lib.random_graph import Graph
+from algorithms.BANDIT_WITH_ARC import BANDIT_WITH_ARC
+
 from lib.traces import Trace
 import matplotlib.pyplot as plt
 import matplotlib.patches as mpatches
@@ -38,7 +39,7 @@ if __name__ == "__main__" :
     trace_obj = Trace()
     f = open('config.txt', 'r')
 
-    DB = {1}
+    DB = {7,8}
     num_db = len(DB)
     subplot = 0
     for file_numer, file_name in enumerate(f):
@@ -75,10 +76,12 @@ if __name__ == "__main__" :
                 algo = LRU(cache_size)
             elif lower_name == 'lfu' :
                 algo = LFU(cache_size)
+            elif lower_name == 'lfu_dacay' :
+                algo = LFU_DECAY(cache_size)
             elif lower_name == 'lfu1' :
-                algo = LFU(cache_size,decay=1)
+                algo = LFU_DECAY(cache_size,decay=1)
             elif lower_name == 'lfu2' :
-                algo = LFU(cache_size,decay=0.9)
+                algo = LFU_DECAY(cache_size,decay=0.9)
             elif lower_name == 'pagerank_fast' :
                 algo = PAGERANK_MARKING_FAST(cache_size)
             elif lower_name == 'pagerank_slow' :
@@ -99,6 +102,10 @@ if __name__ == "__main__" :
                 algo = BANDIT3(cache_size)
             elif lower_name == 'bandit_double_hist' :
                 algo = BANDIT_DOUBLE_HIST(cache_size)   
+            elif lower_name == 'bandit_double_hist' :
+                algo = BANDIT_DOUBLE_HIST(cache_size)   
+            elif lower_name == 'bandit_with_arc' :
+                algo = BANDIT_WITH_ARC(cache_size)   
 
             hits, part_hit_rate, hit_sum = algo.test_algorithm(pages, partition_size=200)
             
@@ -106,7 +113,10 @@ if __name__ == "__main__" :
                 ax = plt.subplot(2,num_db,subplot)
                 ax.set_title('%s internal state' % lower_name)
                 algo.visualize(plt)
-                plt.axvline(x=20000)
+                temp = 1751
+                plt.axvline(x=temp,color='b')
+                plt.axvline(x=10000+temp,color='r')
+                
 
             data.append(part_hit_rate)
             hit_rate.append(round(100.0 * hits / num_pages,2))
@@ -128,15 +138,14 @@ if __name__ == "__main__" :
             plt.fill_between(T, 0,data[:,i], facecolor=colors[i],alpha=0.3,label=algorithm[i])
             patch = mpatches.Patch(color=colors[i], label=algorithm[i])
             labels.append(patch)
-        l, = plt.plot(T,data[:,2], colors[col-1]+'-', label=algorithm[2])
+        l, = plt.plot(T,data[:,col-1], colors[col-1]+'-', label=algorithm[col-1])
         labels.append(l)
 
         hit_rate_text = 'algorithm:  hit-rate\n'
         for i in range(0, col) :
             hit_rate_text += '%s:  %f\n' % (algorithm[i], hit_rate[i])
         ax.annotate(hit_rate_text,(0.05,0.1),textcoords='axes fraction',alpha=0.7, size=12)
-        
-        
+                
         plt.xlabel('Request Window Number')
         plt.ylabel('Hit Rate')
 
