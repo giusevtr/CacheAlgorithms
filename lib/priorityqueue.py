@@ -9,12 +9,18 @@ class priorityqueue:
         self.__capacity = s
         self.__key_locations = {}
         self.__freq = {}
-        
+        self.__accesstime = {}
         self.__heap = [None for _ in range(0, self.__capacity+1)]
         self.__size = 0
+        self.time = 0
         
     def size(self):
         return self.__size
+    
+    def getFreq(self, page):
+        if page in self.__freq:
+            return self.__freq[page]
+        return None
     
     def peaktop(self):
         if self.__size == 0 :
@@ -34,6 +40,8 @@ class priorityqueue:
             self.__heap[self.__size] = x
             self.__key_locations[x] = self.__size
             self.__freq[x] = 1
+            self.__accesstime[x] = self.time
+            self.__settime(x)
             self.__moveup(self.__size)
             
         elif x in self.__freq:
@@ -47,14 +55,22 @@ class priorityqueue:
                 self.__heap[self.__size] = None
                 del self.__key_locations[x]
                 del self.__freq[x]
+                del self.__accesstime[x]
                 self.__size -= 1
-#                 print('debug i = ', i, self.__heap[i])
                 self.__heapify(i)
-        
+        if x in self.__freq:
+            del self.__freq[x]
+        if x in self.__accesstime:
+            del self.__accesstime[x]
     
-    def increase(self, x):
+    def __settime(self,x):
+        self.__accesstime[x] = self.time
+        self.time +=1
+        
+    def increase(self, x, amount = 1):
         i = self.__key_locations[x]
-        self.__freq[x] += 1
+        self.__freq[x] += amount
+        self.__settime(x)
         self.__heapify(i)
        
     def __swap(self,i , j):
@@ -64,7 +80,12 @@ class priorityqueue:
         self.__heap[j] = tempi
         self.__key_locations[tempj] = i
         self.__key_locations[tempi] = j
-             
+    
+    ## True if key1 comes before key2
+    def __comparekeys(self, key1, key2):
+        if self.__freq[key1] == self.__freq[key2] :
+            return self.__accesstime[key1] < self.__accesstime[key2]
+        return self.__freq[key1] < self.__freq[key2]
     
     def __heapify(self, i ):
         if 2*i+1 <= self.__size:
@@ -72,18 +93,22 @@ class priorityqueue:
             curr_key = self.__heap[i]
             left_key = self.__heap[2*i]
             right_key = self.__heap[2*i+1]
-            if self.__freq[left_key] < self.__freq[right_key] :
-                if self.__freq[left_key] < self.__freq[curr_key]:
+            #if self.__freq[left_key] < self.__freq[right_key] :
+            if self.__comparekeys(left_key, right_key):
+                #if self.__freq[left_key] < self.__freq[curr_key]:
+                if self.__comparekeys(left_key, curr_key):
                     self.__swap(i, 2*i)
                     self.__heapify(2*i)
             else:
-                if self.__freq[right_key] < self.__freq[curr_key]:
+                #if self.__freq[right_key] < self.__freq[curr_key]:
+                if self.__comparekeys(right_key, curr_key):
                     self.__swap(i, 2*i+1)
                     self.__heapify(2*i+1)
         elif 2*i == self.__size:
             curr_key = self.__heap[i]
             left_key = self.__heap[2*i]
-            if self.__freq[left_key] < self.__freq[curr_key]:
+            #if self.__freq[left_key] < self.__freq[curr_key]:
+            if self.__comparekeys(left_key, curr_key) :
                 self.__swap(i, 2*i)
                 self.__heapify(2*i)
                     
@@ -91,9 +116,7 @@ class priorityqueue:
         if i > 1 :
             par = i /2
 #             print(par,i, ' ',self.__heap[par],self.__heap[i])
-            freqi = self.__freq[self.__heap[i]]
-            freqpar = self.__freq[self.__heap[par]]
-            if freqi < freqpar:
+            if self.__comparekeys(self.__heap[i], self.__heap[par]):
                 self.__swap(par, i)
                 self.__moveup(par)
             
@@ -118,39 +141,50 @@ if __name__ == "__main__" :
     pq.add(4)
     pq.add(5)
     
-    pq.increase(2)
-    pq.increase(2)
-    pq.increase(3)
-    pq.increase(3)
-    pq.increase(3)
-    pq.increase(4)
-    pq.increase(4)
-    pq.increase(4)
-    pq.increase(4)
-    pq.increase(5)
-    pq.increase(5)
-    pq.increase(5)
-    pq.increase(5)
-    pq.increase(5)
     
-    pq.debug()
+    print(pq.popmin())
+    print(pq.popmin())
+    pq.add(5)
+    pq.add(4)
+    pq.add(3)
     
-    pq.increase(1)
-    pq.increase(1)
-    pq.increase(1)
+    print(pq.popmin())
+    print(pq.popmin())
+    pq.add(1)
+    pq.add(1)
+    print(pq.popmin())
     
     
-    print(1 in pq)
     
-    print(pq.peaktop())
-#     pq.popmin()
-#     pq.delete(1)
-#     pq.delete(2)
+    
+#     pq.increase(2)
+#     pq.increase(2)
+#     pq.increase(3)
+#     pq.increase(3)
+#     pq.increase(3)
+#     pq.increase(4)
+#     pq.increase(4)
+#     pq.increase(4)
+#     pq.increase(4)
+#     pq.increase(5)
+#     pq.increase(5)
+#     pq.increase(5)
+#     pq.increase(5)
+#     pq.increase(5)
+#     pq.debug()
+#     pq.increase(1)
+#     pq.increase(1)
+#     pq.increase(1)
+#     print(1 in pq)
 #     print(pq.peaktop())
-#     pq.popmin()
-#     print(pq.peaktop())
-    
-    pq.debug()
+# #     pq.popmin()
+# #     pq.delete(1)
+# #     pq.delete(2)
+# #     print(pq.peaktop())
+# #     pq.popmin()
+# #     print(pq.peaktop())
+#     
+#     pq.debug()
     
     
 
