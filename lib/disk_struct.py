@@ -2,7 +2,7 @@ import random
 
 class Disk() :
 
-    def __init__(self, N):
+    def __init__(self, N, name=""):
         self.N = N
         self.location = {}
         self.L = []
@@ -10,7 +10,9 @@ class Disk() :
         self.page_in_disk_count = 0
         self.R = [0 for _ in range(0,2*self.N)]
         self.current = 0
-
+        self.name=name
+        self.freq = {}
+        
     def __iter__(self) :
         self.current = 0
         return self
@@ -23,14 +25,20 @@ class Disk() :
         page = self.L[self.current]
         self.current += 1
         return page
-
+    
+    def increaseCount(self, page, amount =1):
+        self.freq[page] += amount
+    def getCount(self, page):
+        return self.freq[page]
+    def setCount(self, page, cnt):
+        self.freq[page] = cnt
     def add(self,page) :
 
         if page in self :
             print("Page already in disk")
             return False
         if self.page_in_disk_count == self.N :
-            print("Failed to add: Disk is full")
+            print("Failed to add: Disk is full: ", self.name)
             return False
 
         index = len(self.L)
@@ -38,6 +46,7 @@ class Disk() :
         self.L.append(page)
         self.update(index+1,1) ## increase ranks of all the pages after index
         self.deleted.append(False)
+        self.freq[page] = 1
         self.page_in_disk_count+=1
         self.compress()
         return True
@@ -48,15 +57,20 @@ class Disk() :
             self.deleted[index] = True
             self.update(index+1,-1) ## decrease ranks of all the pages after index
             self.page_in_disk_count -= 1
+            del self.freq[page]
         else :
             print('Failed to delete. page (%d) not in Disk' % page)
-
+    
     def deleteFront(self):
         if self.size() > 0 :
             front = self.getIthPage(0)
             self.delete(front)
             return front
         return None
+
+    def clear(self):
+        for p in self:
+            self.delete(p)
 
     def inDisk(self,page):
         return page in self
@@ -186,8 +200,16 @@ if __name__ == "__main__" :
 
     for q in d: 
         print(q) 
+        
+        
+    print('d:')
     for q in d:
         print(q) 
     
+    
+    print('Clear')
+    d.clear()
+    for q in d:
+        print(q) 
     
     
