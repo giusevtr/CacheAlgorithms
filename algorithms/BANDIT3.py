@@ -19,10 +19,10 @@ class BANDIT3(page_replacement_algorithm):
         self.Hist = Disk(N)        
         
         ## Config variables
-        self.decayRate = 0.99
+        self.decayRate = 1
         self.epsilon = 0.95
         self.lamb = 0.05
-        self.learning_phase = 2*N
+        self.learning_phase = N
         self.error_discount_rate = (0.005)**(1.0/N)
         ## 
         self.learning = True
@@ -44,7 +44,7 @@ class BANDIT3(page_replacement_algorithm):
     def get_N(self) :
         return self.N
     
-    def vizualize(self, plt):
+    def visualize(self, plt):
         l1, = plt.plot(self.X,self.Y1, 'b-', label='W_lru')
         l2, = plt.plot(self.X,self.Y2, 'r-', label='W_lfu')
         plt.xlabel('time')

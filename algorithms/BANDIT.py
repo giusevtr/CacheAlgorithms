@@ -44,7 +44,7 @@ class BANDIT(page_replacement_algorithm):
         return self.N
 
     
-    def vizualize(self):
+    def visualize(self):
         l1, = plt.plot(self.X,self.Y1, 'b-', label='W0')
         l2, = plt.plot(self.X,self.Y2, 'r-', label='W1')
         plt.xlabel('time')

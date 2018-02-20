@@ -2,4 +2,8 @@ data/*
 *.pyc
 .project
 .pydevproject
+*.jpeg
+*.png
+*.txt
+
 

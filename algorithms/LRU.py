@@ -23,7 +23,6 @@ class LRU(page_replacement_algorithm):
         if self.disk.inDisk(page) :
             self.disk.moveBack(page)
         else :
-            #if len(self.T)  == self.N :
             if self.disk.size() == self.N :
                 ## Remove LRU page
                 lru = self.disk.getIthPage(0)
@@ -35,10 +34,6 @@ class LRU(page_replacement_algorithm):
         return page_fault
 
     def get_data(self):
-        # data = []
-        # for i,p,m in enumerate(self.T):
-        #     data.append((p,m,i,0))
-        # return data
         return [self.disk.get_data()]
 
     def get_list_labels(self) :
@@ -53,12 +48,12 @@ if __name__ == "__main__" :
     n = int(sys.argv[1])
     print("cache size ", n)
 
-    marking = LRU(n)
+    lru = LRU(n)
     page_fault_count = 0
     page_count = 0
     for line in sys.stdin:
         #print("request: ", line)
-        if marking.request(line) :
+        if lru.request(line) :
             page_fault_count += 1
         page_count += 1
 

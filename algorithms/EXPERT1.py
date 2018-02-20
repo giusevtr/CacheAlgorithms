@@ -2,7 +2,7 @@ import random
 import sys
 from lib.disk_struct import Disk
 from algorithms.LRU import LRU
-from algorithms.LFU import LFU
+from algorithms import LFU_DECAY.LFU
 from algorithms.page_replacement_algorithm import  page_replacement_algorithm
 # sys.path.append(os.path.abspath("/home/giuseppe/))
 
@@ -27,7 +27,7 @@ class SIMPLE_EXPERT(page_replacement_algorithm):
         self.lru_cost = 0
         self.lfu_cost = 0
         self.LRU = LRU(N)
-        self.LFU = LFU(N)
+        self.LFU = LFU_DECAY(N)
 
 
         self.current_time = 0
@@ -58,7 +58,7 @@ class SIMPLE_EXPERT(page_replacement_algorithm):
             self.lfu_cost = 0
 
             self.LRU = LRU()
-            self.LFU = LFU()
+            self.LFU = LFU_DECAY()
 
             ## Set LRU data
             temp1 = []
@@ -68,7 +68,7 @@ class SIMPLE_EXPERT(page_replacement_algorithm):
             for q in temp1 :
                 self.LRU.request(q[1])
 
-            # Set LFU data
+            # Set LFU_DECAY data
             self.LFU.set_data(self.freq)
 
         #if len(self.T)  == self.N :

@@ -15,12 +15,15 @@ from algorithms.RANDOM import RANDOM
 from algorithms.BANDIT import BANDIT
 from algorithms.BANDIT2 import BANDIT2
 from algorithms.BANDIT3 import BANDIT3
-from algorithms.BANDIT_DOUBLE_HIST import BANDIT_DOUBLE_HIST
+from algorithms import BANDIT_DOUBLE_HIST
+from algorithms.LaCrema import BANDIT_DOUBLE_HIST2
 from algorithms.BANDIT_WITH_ARC import BANDIT_WITH_ARC
 
 from lib.traces import Trace
 import matplotlib.pyplot as plt
 import matplotlib.patches as mpatches
+
+
 
 if __name__ == "__main__" :
     if len(sys.argv) < 3 :
@@ -31,8 +34,9 @@ if __name__ == "__main__" :
         sys.exit(0)
 
     cache_size = int(sys.argv[1])
+    
     algorithm = sys.argv[2:]
-
+    
     ###############################################################
     ## Read data
     ###############################################################
@@ -101,9 +105,11 @@ if __name__ == "__main__" :
             elif lower_name == 'bandit3' :
                 algo = BANDIT3(cache_size)
             elif lower_name == 'bandit_double_hist' :
-                algo = BANDIT_DOUBLE_HIST(cache_size)   
+                algo = LaCrema(cache_size)   
             elif lower_name == 'bandit_double_hist' :
-                algo = BANDIT_DOUBLE_HIST(cache_size)   
+                algo = LaCrema(cache_size)
+            elif lower_name == 'bandit_double_hist2' :
+                algo = BANDIT_DOUBLE_HIST2(cache_size)
             elif lower_name == 'bandit_with_arc' :
                 algo = BANDIT_WITH_ARC(cache_size)   
 
