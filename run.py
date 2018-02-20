@@ -16,14 +16,13 @@ if __name__ == "__main__" :
     
     if os.path.isfile(INPUT_CONFIG_FILE) :
         f = open(INPUT_CONFIG_FILE, 'r')
-        DATA_FOLDER = f.readline()
+        DATA_FOLDER = f.readline().rstrip('\n\r')
     else:
         print('%s not found')
         sys.exit(0)
     
     OUTPUT_FOLDER='output/'
     
-    print('len(sys.argv) = ', len(sys.argv), sys.argv)
     if len(sys.argv) <= 3 :
         print('Must provide more than 3 arguments')
         sys.exit(0)
