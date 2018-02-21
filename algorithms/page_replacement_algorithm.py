@@ -49,9 +49,9 @@ class page_replacement_algorithm :
 
             ## Progres
             percent = int ((100.0 * (i+1) / num_pages))
-            if percent != last_percent and percent % 1 == 0 :
+            if percent != last_percent and percent % 10 == 0 :
                 # print percent
-                bars = int(percent / 100)
+                bars = int(percent / 10)
                 sys.stdout.write('|')
                 for i in range(bars) :
                     sys.stdout.write('=')
