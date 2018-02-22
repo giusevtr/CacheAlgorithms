@@ -5,5 +5,5 @@ data/*
 *.jpeg
 *.png
 *.txt
-
+*.sh
 

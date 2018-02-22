@@ -11,6 +11,22 @@ import matplotlib.patches as mpatches
 ##
 
 
+def getLowLim(data, i):
+    n = data.shape[1] # columns
+    m = data.shape[0] # rows
+    arr = np.array([])
+    
+    for j in range(0,n):
+        y = data[i, j]
+        x = 0
+        V = np.append(data[0:i,j],data[i+1:m,j])
+        for v in V :
+            if v < y and v > x:
+                x = v
+        arr = np.append(arr, x)
+    
+    return arr
+
 if __name__ == "__main__" :
     INPUT_CONFIG_FILE = 'config/input_data_location.txt'
     
@@ -30,6 +46,12 @@ if __name__ == "__main__" :
     cache_size = int(sys.argv[1])
     experiment_name = sys.argv[2]
     algorithm = sys.argv[3:]
+    
+    ###############################################################
+    ## Plot title
+    ###############################################################
+    subtitle = '\nfile name: %s\n' % experiment_name
+    plt.title(subtitle)
     
     ###############################################################
     ## Read data
@@ -56,6 +78,7 @@ if __name__ == "__main__" :
         ########################
         ax = plt.subplot(2,1,1)
         ax.set_title('%s internal state' % name)
+        ax.set_ylim(0,1)
         algo.visualize(plt)
         temp = 1751
 #         plt.axvline(x=temp,color='b')
@@ -67,40 +90,46 @@ if __name__ == "__main__" :
         print("{:<20} {:<20} {:<20} {:<20}  {:<20}".format(name, round(100.0 * hits / num_pages,2), hits, num_pages, trace_obj.unique_pages()))
 
         sys.stdout.flush()
-    data = np.array(data).T
+    data = np.array(data)
     print('=====================================================')
 
     #####################
     ## Plot performance #
     #####################
     ax = plt.subplot(2,1,2)
-    ax.set_title('file name: %s\n' % experiment_name)
-    
-    col = data.shape[1]
-    T = np.array(range(0,len(data)))
-    plt.axvline(x=data.shape[0]/2)
-    for i in range(0,col-1):
-        plt.fill_between(T, 0,data[:,i], facecolor=colors[i],alpha=0.3,label=algorithm[i])
-        patch = mpatches.Patch(color=colors[i], label=algorithm[i])
-        labels.append(patch)
-    l, = plt.plot(T,data[:,col-1], colors[col-1]+'-', label=algorithm[col-1])
-    labels.append(l)
+    #ax.set_title('file name: %s\n' % experiment_name)
+    ax.set_ylim(0,1)
+    rows = data.shape[0]
+    cols = data.shape[1]
+    T = np.array(range(0,cols))
+    plt.axvline(x=cols/2)
+    cnt = rows
+#     plt.stackplot(T,data,baseline='wiggle')
+    for i in range(0,rows):        
+        upper = data[i,:]
+        lower = getLowLim(data, i)
+#         plt.fill_between(T, lower,upper, facecolor=colors[i],alpha=0.3,label=algorithm[i])
+#         plt.fill_between(T, 0,data[i,:], facecolor=colors[i],alpha=1,label=algorithm[i])
+        plt.style.use('fivethirtyeight')
+        l, = plt.plot(T,upper,c=colors[i],label=algorithm[i])
+#         l, = plt.plot(T,upper,c=colors[i],label=algorithm[i],alpha=1,linewidth=(rows-i)*0.5)
+        
+        labels.append(l)
+#         patch = mpatches.Patch(color=colors[i], label=algorithm[i])
+#         labels.append(patch)
+#     l, = plt.plot(T,data[rows-1,:], colors[rows-1]+'-', label=algorithm[rows-1])
+#     labels.append(l)
 
     hit_rate_text = 'algorithm:  hit-rate\n'
-    for i in range(0, col) :
+    for i in range(0, rows) :
         hit_rate_text += '%s:  %f\n' % (algorithm[i], hit_rate[i])
     ax.annotate(hit_rate_text,(0.05,0.1),textcoords='axes fraction',alpha=0.7, size=12)
-            
+    ax.set_title("'fivethirtyeight' style sheet")
+    
     plt.xlabel('Request Window Number')
     plt.ylabel('Hit Rate')
-    plt.legend(handles=labels)
+    plt.legend(handles=labels,fancybox=True, framealpha=0.5)
 
-    subtitle = ''
-    for i,al in enumerate(algorithm) :
-        subtitle += al
-        if i < len(algorithm)-1:
-            subtitle += ' vs '
-    plt.suptitle(subtitle)
     
     outfilename =OUTPUT_FOLDER+experiment_name+'_'+str(cache_size)+'.jpeg' 
     

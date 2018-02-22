@@ -1,8 +1,8 @@
 #!/bin/bash
 
-CACHE_SIZE=(10 20)
-FILES=(Financial1_small.spc Financial1_small.spc)
-ALGORITHMS=(lru lfu)
+CACHE_SIZE=(1090 5000)
+FILES=(Financial1_50K.spc Financial1_300K.spc)
+ALGORITHMS=(lru lfu LaCrema)
 
 
 for ((i=0;i<${#CACHE_SIZE[@]};++i)); do
