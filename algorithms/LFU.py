@@ -23,7 +23,6 @@ class LFU(page_replacement_algorithm):
         
         if page in self.PQ :
 #         if self.PQ.contain(page) :
-        
             page_fault = False
             self.PQ.increase(page)
         else :

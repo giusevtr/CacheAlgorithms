@@ -1,9 +1,8 @@
 #!/bin/bash
 
-CACHE_SIZE=(1090 5000)
-FILES=(Financial1_50K.spc Financial1_300K.spc)
-ALGORITHMS=(lru lfu arc LaCrema)
-
+CACHE_SIZE=(50 50)
+FILES=(exp_dist_lru_lfu.txt exp_dist_lfu_lru.txt)
+ALGORITHMS=(lru lfu LaCrema)
 
 for ((i=0;i<${#CACHE_SIZE[@]};++i)); do
     python ../run.py "${CACHE_SIZE[i]}" "${FILES[i]}" "${ALGORITHMS[@]}"

@@ -23,6 +23,7 @@ def Random():
 ## Choose page using LRU distribution
 def LRU():
     global Q
+    global F
     n = min(CACHE_SIZE, len(F))
     L = []
     seen = {}
@@ -34,13 +35,16 @@ def LRU():
         L.append((F[pg],pg))
         seen[pg] = 1
     L.sort()
-    
-#     return L[0][1]
-    return L[np.random.randint(0, n)][1]
+    minfreqpages = 0
+    while minfreqpages < len(L) and L[0][0] == L[minfreqpages][0] :
+        minfreqpages +=1
+    return L[np.random.randint(0,minfreqpages)][1]
+#     return L[np.random.randint(0, n)][1]
 
 ## Choose page using LFU distribution
 def LFU():
     global F
+    global R
     n = min(CACHE_SIZE, len(F))
     L = []
     for key in F :
@@ -53,16 +57,17 @@ def LFU():
         page = pg[1]
         temp.append((R[page],page))
     
-#     return min(Q)[1]
-    return temp[np.random.randint(0, n)][1]
+    return min(temp)[1]
+#     return temp[np.random.randint(0, n)][1]
 
 def update(page):
     global time
+    global Q
+    global R
+    global F
     Q.append(page)
     if page not in F :
         F[page] = 0
-#     for pg in F :
-#         F[pg] *= DECAY_RATE
     F[page] += 1
     R[page] = time
     time += 1

@@ -71,7 +71,7 @@ if __name__ == "__main__" :
     print("{:<20} {:<20} {:<20} {:<20} {:<20}".format("Name","Hit Ratio(%)", "Hit Count", "Total Request","Unique Pages" ) )
     for name in algorithm :
         algo = GetAlgorithm(cache_size, name)
-        hits, part_hit_rate, hit_sum = algo.test_algorithm(pages, partition_size=200)
+        hits, part_hit_rate, hit_sum = algo.test_algorithm(pages, partition_size=cache_size*4)
         
         ########################
         ## Plot internal state
@@ -98,7 +98,7 @@ if __name__ == "__main__" :
     #####################
     ax = plt.subplot(2,1,2)
     #ax.set_title('file name: %s\n' % experiment_name)
-    ax.set_ylim(0,1)
+    ax.set_ylim(-.05,1.05)
     rows = data.shape[0]
     cols = data.shape[1]
     T = np.array(range(0,cols))
@@ -110,10 +110,9 @@ if __name__ == "__main__" :
         lower = getLowLim(data, i)
 #         plt.fill_between(T, lower,upper, facecolor=colors[i],alpha=0.3,label=algorithm[i])
 #         plt.fill_between(T, 0,data[i,:], facecolor=colors[i],alpha=1,label=algorithm[i])
-        plt.style.use('fivethirtyeight')
-        l, = plt.plot(T,upper,c=colors[i],label=algorithm[i])
-#         l, = plt.plot(T,upper,c=colors[i],label=algorithm[i],alpha=1,linewidth=(rows-i)*0.5)
-        
+#         plt.style.use('fivethirtyeight')
+#         l, = plt.plot(T,upper,c=colors[i],label=algorithm[i])
+        l, = plt.plot(T,upper,c=colors[i],label=algorithm[i],alpha=1,linewidth=(rows-i)*2)
         labels.append(l)
 #         patch = mpatches.Patch(color=colors[i], label=algorithm[i])
 #         labels.append(patch)
@@ -124,7 +123,6 @@ if __name__ == "__main__" :
     for i in range(0, rows) :
         hit_rate_text += '%s:  %f\n' % (algorithm[i], hit_rate[i])
     ax.annotate(hit_rate_text,(0.05,0.1),textcoords='axes fraction',alpha=0.7, size=12)
-    ax.set_title("'fivethirtyeight' style sheet")
     
     plt.xlabel('Request Window Number')
     plt.ylabel('Hit Rate')
