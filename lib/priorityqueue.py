@@ -5,7 +5,7 @@ Created on Feb 10, 2018
 '''
 
 class priorityqueue:
-    def __init__(self, s):
+    def __init__(self, s, decay = 0.99):
         self.__capacity = s
         self.__key_locations = {}
         self.__freq = {}
@@ -13,6 +13,8 @@ class priorityqueue:
         self.__heap = [None for _ in range(0, self.__capacity+1)]
         self.__size = 0
         self.time = 0
+        self.__lastUptTime = {}
+        self.__decay = decay
         
     def size(self):
         return self.__size

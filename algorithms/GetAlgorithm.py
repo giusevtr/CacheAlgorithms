@@ -4,6 +4,7 @@ Created on Feb 17, 2018
 @author: giuseppe
 '''
 from algorithms.LRU import LRU
+from algorithms.MRU import MRU
 from algorithms.LFU import LFU
 from algorithms.LFU_DECAY import LFU_DECAY
 from algorithms.ARC import ARC
@@ -17,7 +18,6 @@ from algorithms.RANDOM import RANDOM
 from algorithms.BANDIT import BANDIT
 from algorithms.BANDIT2 import BANDIT2
 from algorithms.BANDIT3 import BANDIT3
-from algorithms.BANDIT_DOUBLE_HIST import BANDIT_DOUBLE_HIST
 from algorithms.LaCrema import LaCrema
 from algorithms.BANDIT_WITH_ARC import BANDIT_WITH_ARC
 
@@ -29,6 +29,8 @@ def GetAlgorithm(cache_size,name):
         return  MARKING(cache_size)
     elif lower_name == 'lru' :
         return LRU(cache_size)
+    elif lower_name == 'mru' :
+        return MRU(cache_size)
     elif lower_name == 'lfu' :
         return LFU(cache_size)
     elif lower_name == 'lfu_dacay' :

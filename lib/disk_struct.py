@@ -12,11 +12,11 @@ class Disk() :
         self.current = 0
         self.name=name
         self.freq = {}
-        
+
     def __iter__(self) :
         self.current = 0
         return self
-    
+
     def next(self): # Python 3: def __next__(self)
         while self.current < len(self.L) and self.deleted[self.current] == True:
             self.current += 1
@@ -25,7 +25,7 @@ class Disk() :
         page = self.L[self.current]
         self.current += 1
         return page
-    
+
     def increaseCount(self, page, amount =1):
         self.freq[page] += amount
     def getCount(self, page):
@@ -33,7 +33,6 @@ class Disk() :
     def setCount(self, page, cnt):
         self.freq[page] = cnt
     def add(self,page) :
-
         if page in self :
             print("Page already in disk")
             return False
@@ -58,14 +57,16 @@ class Disk() :
             self.update(index+1,-1) ## decrease ranks of all the pages after index
             self.page_in_disk_count -= 1
             del self.freq[page]
-        else :
-            print('Failed to delete. page (%d) not in Disk' % page)
-    
+            return True
+        print('Failed to delete. page (%d) not in Disk' % page)
+        return False
+
     def deleteFront(self):
         if self.size() > 0 :
             front = self.getIthPage(0)
             self.delete(front)
             return front
+        print('deleteFront Failed')
         return None
 
     def clear(self):
@@ -85,7 +86,10 @@ class Disk() :
         if self.inDisk(page) :
             self.delete(page)
             self.add(page)
-
+            return True
+        print('moveBack failed')
+        return False
+    
     def moveFront(self,page):
         pass
 
@@ -193,23 +197,23 @@ if __name__ == "__main__" :
     print(d.getIthPage(2))
     print(d.getIthPage(3))
     print(d.getIthPage(4))
- 
+
     print('iterator:')
     for p in d :
         print(p)
 
-    for q in d: 
-        print(q) 
-        
-        
+    for q in d:
+        print(q)
+
+
     print('d:')
     for q in d:
-        print(q) 
-    
-    
+        print(q)
+
+
     print('Clear')
     d.clear()
     for q in d:
-        print(q) 
-    
-    
+        print(q)
+
+

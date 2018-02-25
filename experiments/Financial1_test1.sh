@@ -1,7 +1,7 @@
 #!/bin/bash
 
-CACHE_SIZE=(1090 5000)
-FILES=(Financial1_50K.spc Financial1_300K.spc)
+CACHE_SIZE=(2000)
+FILES=(Financial1_50K.spc)
 ALGORITHMS=(lru lfu arc LaCrema)
 
 
