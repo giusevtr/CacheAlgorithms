@@ -3,8 +3,9 @@ Created on Feb 10, 2018
 
 @author: giuseppe
 '''
+from lib.CacheDataStruct import CacheDataStruct
 
-class priorityqueue:
+class priorityqueue(CacheDataStruct):
     def __init__(self, s, decay = 0.99):
         self.__capacity = s
         self.__key_locations = {}
@@ -13,17 +14,24 @@ class priorityqueue:
         self.__heap = [None for _ in range(0, self.__capacity+1)]
         self.__size = 0
         self.time = 0
-        self.__lastUptTime = {}
-        self.__decay = decay
+        self.__decaytime = self.__capacity
         
     def size(self):
         return self.__size
+    
+    def getCount(self, page):
+        return self.getFreq(page)
     
     def getFreq(self, page):
         if page in self.__freq:
             return self.__freq[page]
         return None
     
+    def decay(self, decay_factor):
+        for pg in self.__freq:
+            self.__freq[pg] /= decay_factor
+            self.__freq[pg] = int(self.__freq[pg]+0.5) # round up so that no page has frequency equals to 0
+            
     def peaktop(self):
         if self.__size == 0 :
             return None
@@ -42,7 +50,6 @@ class priorityqueue:
             self.__heap[self.__size] = x
             self.__key_locations[x] = self.__size
             self.__freq[x] = 1
-            self.__accesstime[x] = self.time
             self.__settime(x)
             self.__moveup(self.__size)
             

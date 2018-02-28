@@ -1,6 +1,7 @@
 import random
+from lib.CacheDataStruct import CacheDataStruct
 
-class Disk() :
+class Disk(CacheDataStruct) :
 
     def __init__(self, N, name=""):
         self.N = N
