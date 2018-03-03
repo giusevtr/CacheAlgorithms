@@ -9,11 +9,11 @@ import matplotlib.pyplot as plt
 ## python cache_size experiment_name algorithms
 ##
 
-WINDOW_SIZE = 20
+WINDOW_SIZE = 10
 ANNOTATION_HEIGHT = 0.4
 #VERTICAL_LINES = {40917 - 20000, 917}
-VERTICAL_LINES = {41754 - 10000, 41754 - 20000,41754 - 30000,41754 - 40000}
-
+# VERTICAL_LINES = {41754 - 10000, 41754 - 20000,41754 - 30000,41754 - 40000}
+VERTICAL_LINES = {}
 
 
 

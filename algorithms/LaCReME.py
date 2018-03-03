@@ -2,6 +2,7 @@ from lib.disk_struct import Disk
 from algorithms.page_replacement_algorithm import  page_replacement_algorithm
 from lib.priorityqueue import priorityqueue
 import numpy as np
+import Queue
 # import matplotlib.pyplot as plt
 import os
 os.environ['TF_CPP_MIN_LOG_LEVEL'] = '3'
@@ -51,6 +52,13 @@ class LaCReME(page_replacement_algorithm):
         self.Y1 = np.array([])
         self.Y2 = np.array([])
         
+        
+        ###
+        self.q = Queue.Queue()
+        self.sum = 0
+        self.NewPages = []
+        
+        
     def get_N(self) :
         return self.N
     
@@ -60,7 +68,8 @@ class LaCReME(page_replacement_algorithm):
         ax.set_xlim(np.min(self.X), np.max(self.X))
         l1, = plt.plot(self.X,self.Y1, 'b-', label='W_lru')
         l2, = plt.plot(self.X,self.Y2, 'r-', label='W_lfu')
-        return [l1,l2]
+        l3, = plt.plot(self.X, self.NewPages, 'g-', label='New Pages')
+        return [l1,l2,l3]
         
     def __keyWithMinVal(self,d):
         v=list(d.values())
@@ -145,6 +154,7 @@ class LaCReME(page_replacement_algorithm):
         self.X = np.append(self.X, self.time)
         self.Y1 = np.append(self.Y1, prob[0])
         self.Y2 = np.append(self.Y2, prob[1])
+        notInHistory = 0
         
         if self.time % self.N == 0 :
             self.CacheFrequecy.decay(self.decay_factor)
@@ -173,6 +183,9 @@ class LaCReME(page_replacement_algorithm):
                 histpage_freq = self.Hist2.getFreq(page) ## Get the page frequency in history
                 self.Hist2.delete(page)
                 policyUsed = 1
+            else:
+                notInHistory = 1
+                
             if pageevict is not None :
                 q = self.weightsUsed[pageevict]
                 err = self.error_discount_rate ** (self.time - self.evictionTime[pageevict])
@@ -240,6 +253,13 @@ class LaCReME(page_replacement_algorithm):
             
             page_fault = True
 
+        self.q.put(notInHistory)
+        self.sum += notInHistory
+        if self.q.qsize() > self.N:
+            self.sum -= self.q.get()
+        
+        self.NewPages.append(1.0*self.sum / self.N)
+        
         return page_fault
 
     def get_list_labels(self) :
