@@ -32,7 +32,7 @@ class BANDIT_DOUBLE_HIST(page_replacement_algorithm):
         self.frequency = {}
         self.evictionTime = {}
         self.policyUsed = {}
-        self.qUsed = {}
+        self.weightsUsed = {}
         ## Accounting variables
         self.time = 0
         
@@ -151,7 +151,7 @@ class BANDIT_DOUBLE_HIST(page_replacement_algorithm):
                 policyUsed = 1
                 
             if pageevict is not None :
-                q = self.qUsed[pageevict]
+                q = self.weightsUsed[pageevict]
                 
                 err = self.error_discount_rate ** (self.time - self.evictionTime[pageevict])
                 reward = np.array([0,0], dtype=np.float32)
@@ -193,7 +193,7 @@ class BANDIT_DOUBLE_HIST(page_replacement_algorithm):
                 
                 self.Cache.delete(cacheevict)
                 
-                self.qUsed[cacheevict] = self.getQ()
+                self.weightsUsed[cacheevict] = self.getQ()
                 self.evictionTime[cacheevict] = self.time
                 
                 histevict = -1
@@ -215,7 +215,7 @@ class BANDIT_DOUBLE_HIST(page_replacement_algorithm):
                     del self.accessedTime[histevict]
                     del self.frequency[histevict]
                     del self.policyUsed[histevict]
-                    del self.qUsed[histevict]
+                    del self.weightsUsed[histevict]
 #                 print('act = ', act)
 #                 self.Hist.add(evictPage)
                 

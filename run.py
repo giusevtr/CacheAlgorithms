@@ -4,11 +4,17 @@ import numpy as np
 from algorithms.GetAlgorithm import GetAlgorithm
 from lib.traces import Trace
 import matplotlib.pyplot as plt
-import matplotlib.patches as mpatches
 
 ##
 ## python cache_size experiment_name algorithms
 ##
+
+WINDOW_SIZE = 20
+ANNOTATION_HEIGHT = 0.4
+#VERTICAL_LINES = {40917 - 20000, 917}
+VERTICAL_LINES = {41754 - 10000, 41754 - 20000,41754 - 30000,41754 - 40000}
+
+
 
 
 def getLowLim(data, i):
@@ -69,27 +75,38 @@ if __name__ == "__main__" :
     data = []
     hit_rate = []
     print("{:<20} {:<20} {:<20} {:<20} {:<20}".format("Name","Hit Ratio(%)", "Hit Count", "Total Request","Unique Pages" ) )
+    labels = []
+    ########################
+    ## Plot internal state
+    ########################
+    ax = plt.subplot(2,1,1)
+    ax.set_title('internal state')
+    xlim1,xlim2 = 0,0
+    VERTICAL_LINES
+    for v in VERTICAL_LINES :
+        plt.axvline(x=v,color='g')
+    
     for name in algorithm :
         algo = GetAlgorithm(cache_size, name)
-        hits, part_hit_rate, hit_sum = algo.test_algorithm(pages, partition_size=cache_size*4)
+        hits, part_hit_rate, hit_sum = algo.test_algorithm(pages, partition_size=cache_size*WINDOW_SIZE)
         
-        ########################
-        ## Plot internal state
-        ########################
-        ax = plt.subplot(2,1,1)
-        ax.set_title('%s internal state' % name)
-        ax.set_ylim(0,1)
-        algo.visualize(plt)
-        temp = 1751
+        lbl = algo.visualize(plt)
+        
+        if lbl is not None :
+            labels = labels + lbl
+#         temp = 1751
 #         plt.axvline(x=temp,color='b')
 #         plt.axvline(x=10000+temp,color='r')
-
         data.append(part_hit_rate)
         hit_rate.append(round(100.0 * hits / num_pages,2))
-        # print('%s\t%f\t\t%d\t\t%d\t\t%d' % (lower_name, 100.0 * hits / num_pages, hits, num_pages, trace_obj.unique_pages()))
         print("{:<20} {:<20} {:<20} {:<20}  {:<20}".format(name, round(100.0 * hits / num_pages,2), hits, num_pages, trace_obj.unique_pages()))
 
         sys.stdout.flush()
+    ax.set_ylim(0,1)
+#     ax.autoscale(axis='both')
+    plt.xlabel('Time')
+    plt.ylabel('Weight')
+    plt.legend(handles=labels,fancybox=True, framealpha=0.5)
     data = np.array(data)
     print('=====================================================')
 
@@ -98,31 +115,23 @@ if __name__ == "__main__" :
     #####################
     ax = plt.subplot(2,1,2)
     #ax.set_title('file name: %s\n' % experiment_name)
-    ax.set_ylim(-.05,1.05)
     rows = data.shape[0]
     cols = data.shape[1]
     T = np.array(range(0,cols))
     plt.axvline(x=cols/2)
     cnt = rows
-#     plt.stackplot(T,data,baseline='wiggle')
+    labels = []
+    ax.set_ylim(-.05,1.05)
+    ax.set_xlim(0,cols)
     for i in range(0,rows):        
         upper = data[i,:]
-        lower = getLowLim(data, i)
-#         plt.fill_between(T, lower,upper, facecolor=colors[i],alpha=0.3,label=algorithm[i])
-#         plt.fill_between(T, 0,data[i,:], facecolor=colors[i],alpha=1,label=algorithm[i])
-#         plt.style.use('fivethirtyeight')
-#         l, = plt.plot(T,upper,c=colors[i],label=algorithm[i])
         l, = plt.plot(T,upper,c=colors[i],label=algorithm[i],alpha=1,linewidth=(rows-i)*2)
         labels.append(l)
-#         patch = mpatches.Patch(color=colors[i], label=algorithm[i])
-#         labels.append(patch)
-#     l, = plt.plot(T,data[rows-1,:], colors[rows-1]+'-', label=algorithm[rows-1])
-#     labels.append(l)
 
     hit_rate_text = 'algorithm:  hit-rate\n'
     for i in range(0, rows) :
         hit_rate_text += '%s:  %f\n' % (algorithm[i], hit_rate[i])
-    ax.annotate(hit_rate_text,(0.05,0.1),textcoords='axes fraction',alpha=0.7, size=12)
+    ax.annotate(hit_rate_text,(0.05,ANNOTATION_HEIGHT),textcoords='axes fraction',alpha=0.9, size=12)
     
     plt.xlabel('Request Window Number')
     plt.ylabel('Hit Rate')

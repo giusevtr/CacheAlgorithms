@@ -29,7 +29,7 @@ class BANDIT2(page_replacement_algorithm):
         self.frequency = {}
         self.evictionTime = {}
         self.policyUsed = {}
-        self.qUsed = {}
+        self.weightsUsed = {}
         ## Accounting variables
         self.time = 0
         
@@ -149,7 +149,7 @@ class BANDIT2(page_replacement_algorithm):
                 self.Hist.delete(pageevict)
                 ## Update weights
                 poly = self.policyUsed[pageevict]
-                q = self.qUsed[pageevict]
+                q = self.weightsUsed[pageevict]
 #                 uniq = self.countUniquePagesSince(self.accessedTime[pageevict])
                 h = self.posInHist(self.accessedTime[pageevict]) + 1
                 reward = np.array([0,0], dtype=np.float32)
@@ -169,7 +169,7 @@ class BANDIT2(page_replacement_algorithm):
                 del self.accessedTime[pageevict]
                 del self.frequency[pageevict]
                 del self.policyUsed[pageevict]
-                del self.qUsed[pageevict]
+                del self.weightsUsed[pageevict]
                 
             ## Remove from Hist
 #             if self.Hist.size() == self.N:
@@ -181,7 +181,7 @@ class BANDIT2(page_replacement_algorithm):
 #                 del self.accessedTime[evictPage]
 #                 del self.frequency[evictPage]
 #                 del self.policyUsed[evictPage]
-#                 del self.qUsed[evictPage]
+#                 del self.weightsUsed[evictPage]
             
             ## Remove from Cache
             if self.Cache.size() == self.N:
@@ -194,7 +194,7 @@ class BANDIT2(page_replacement_algorithm):
                     train = True
                 
                 evictPage,self.policyUsed[evictPage] = self.selectEvictPage(act)
-                self.qUsed[evictPage] = self.getQ()
+                self.weightsUsed[evictPage] = self.getQ()
                 
                 self.Cache.delete(evictPage)
                 self.evictionTime[evictPage] = self.time

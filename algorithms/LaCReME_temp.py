@@ -12,35 +12,41 @@ os.environ['TF_CPP_MIN_LOG_LEVEL'] = '3'
 ##      Every time we get a page hit, mark the page and also move it to the MRU position
 ## Page faults:
 ##      Evict an unmark page with the probability proportional to its position in the LRU list.
-class LaCrema(page_replacement_algorithm):
+class LaCReME(page_replacement_algorithm):
 
     def __init__(self, N):
         self.N = N
         self.CacheRecency = Disk(N)
         self.CacheFrequecy = priorityqueue(N)
-        
         self.Hist1 = Disk(N)        
         self.Hist2 = priorityqueue(N)        
         
         ## Config variables
         self.decayRate = 1
-        self.epsilon = 0.95
+        self.epsilon = 0.05
         self.lamb = 0.05
         self.learning_phase = N/2
-        self.error_discount_rate = (0.005)**(1.0/N)
+#         self.error_discount_rate = (0.005)**(1.0/N) ## TODO ADD BACK
+        self.error_discount_rate = 1
+        
         ## 
         self.learning = True
         self.policy = 0
         self.evictionTime = {}
         self.policyUsed = {}
-        self.qUsed = {}
+        self.weightsUsed = {}
         self.freq = {}
+        
+        ## TODO add decay_time and decay_factor
+        self.decay_time = N
+        self.decay_factor = 1
+        
         ## Accounting variables
         self.time = 0
         
         self.W = np.array([.5,.5], dtype=np.float32)
         
-        self.X = np.array([])
+        self.X = np.array([],dtype=np.int32)
         self.Y1 = np.array([])
         self.Y2 = np.array([])
         
@@ -48,23 +54,12 @@ class LaCrema(page_replacement_algorithm):
         return self.N
     
     def visualize(self, plt):
+#         print(np.min(self.X), np.max(self.X))
+        ax = plt.subplot(2,1,1)
+        ax.set_xlim(np.min(self.X), np.max(self.X))
         l1, = plt.plot(self.X,self.Y1, 'b-', label='W_lru')
         l2, = plt.plot(self.X,self.Y2, 'r-', label='W_lfu')
-        plt.xlabel('time')
-        plt.ylabel('Weight')
-        plt.legend(handles=[l1,l2])
-        
-    def __keyWithMinVal(self,d):
-        v=list(d.values())
-        k=list(d.keys())
-        return k[v.index(min(v))]
-    
-    def getMinValueFromCache(self, values):
-        minpage,first = -1, True
-        for q in self.Cache :
-            if first or values[q] < values[minpage] :
-                minpage,first=q,False
-        return minpage
+        return [l1,l2]
     
     ##########################################
     ## Add a page to cache using policy 'poly'
@@ -74,6 +69,7 @@ class LaCrema(page_replacement_algorithm):
         self.CacheFrequecy.add(page)
         self.CacheRecency.increaseCount(page, amount=pagefreq)
         self.CacheFrequecy.increase(page, amount=pagefreq)
+        
     ######################
     ## Get LFU or LFU page
     ######################    
@@ -117,6 +113,7 @@ class LaCrema(page_replacement_algorithm):
             if r < p:
                 return i 
         return len(q)-1
+    
     def updateWeight(self, cost):
         self.W = self.W * (1-self.epsilon * cost)
         self.W = self.W / np.sum(self.W)
@@ -127,8 +124,8 @@ class LaCrema(page_replacement_algorithm):
     def request(self,page) :
         page_fault = False
         self.time = self.time + 1
-        if self.time % self.learning_phase == 0 :
-            self.learning = not self.learning
+#         if self.time % self.learning_phase == 0 :
+#             self.learning = not self.learning
         
         #####################
         ## Visualization data
@@ -137,6 +134,11 @@ class LaCrema(page_replacement_algorithm):
         self.X = np.append(self.X, self.time)
         self.Y1 = np.append(self.Y1, prob[0])
         self.Y2 = np.append(self.Y2, prob[1])
+
+        
+        if self.time % self.N == 0 :
+            self.CacheFrequecy.decay(self.decay_factor)
+            self.Hist2.decay(self.decay_factor)
 
         ##########################
         ## Process page request 
@@ -156,27 +158,32 @@ class LaCrema(page_replacement_algorithm):
                 histpage_freq = self.Hist1.getCount(page)
                 self.Hist1.delete(page)
                 policyUsed = 0
+                self.W[0] = self.W[0] * (1 - self.epsilon) if self.policyUsed[page] != -1 else self.W[0]
             elif page in self.Hist2:
                 pageevict = page
-                histpage_freq = self.Hist2.getFreq(page) ## Get the page frequency in history
+                histpage_freq = self.Hist2.getCount(page) ## Get the page frequency in history
                 self.Hist2.delete(page)
                 policyUsed = 1
-            if pageevict is not None :
-                q = self.qUsed[pageevict]
-                err = self.error_discount_rate ** (self.time - self.evictionTime[pageevict])
-                reward = np.array([0,0], dtype=np.float32)
-                if policyUsed == 0 : # LRU
-                    reward[1] = err
-                if policyUsed == 1:
-                    reward[0] = err
-                reward_hat = reward / q
+                self.W[1] = self.W[1] * (1 - self.epsilon) if self.policyUsed[page] != -1 else self.W[1]
+            self.W = self.W / np.sum(self.W)
+#             if pageevict is not None :
+#                 q = self.weightsUsed[pageevict]
+# #                 err = self.error_discount_rate ** (self.time - self.evictionTime[pageevict])
+#                 err = 1
+#                 reward = np.array([0,0], dtype=np.float32)
+#                 if policyUsed == 0 : # LRU
+#                     reward[0] = err
+#                 if policyUsed == 1:
+#                     reward[1] = err
+#                 reward_hat = reward 
                 
                 #################
                 ## Update Weights
                 #################
-                if self.policyUsed[pageevict] != -1 :
-                    self.W = self.W * np.exp(self.lamb * reward_hat / 2)
-                    self.W = self.W / np.sum(self.W)
+#                 if self.policyUsed[pageevict] != -1 :
+# #                     self.W = self.W * np.exp(self.lamb * reward_hat / 2)
+#                     self.W = self.W * (1 - reward*self.epsilon)
+#                     self.W = self.W / np.sum(self.W)
             
             ####################
             ## Remove from Cache
@@ -186,20 +193,23 @@ class LaCrema(page_replacement_algorithm):
                 ################
                 ## Choose Policy
                 ################
-                if  not self.learning :
-                    act = np.argmax(self.getQ())
-                else :
-                    act = self.chooseRandom()
+#                 if  not self.learning :
+#                     act = np.argmax(self.getQ())
+#                 else :
+#                 act = self.chooseRandom()
+                
+                act = np.argmax(self.W) ## REMOVE
                 
                 cacheevict,poly = self.selectEvictPage(act)
-                pagefreq = self.CacheRecency.getCount(cacheevict) if cacheevict in self.CacheRecency else self.CacheFrequecy.getFreq(cacheevict)
+                pagefreq = self.CacheFrequecy.getCount(cacheevict)
                 
                 self.policyUsed[cacheevict] = poly
-                self.qUsed[cacheevict] = self.getQ()
+                self.weightsUsed[cacheevict] = self.getQ()
                 self.evictionTime[cacheevict] = self.time
-                        
-                if not self.learning :
-                    self.policyUsed[cacheevict] = -1
+                
+                ## TODO ADD BACK
+#                 if not self.learning :
+#                     self.policyUsed[cacheevict] = -1
                 
                 ###################
                 ## Evict to history
@@ -220,7 +230,7 @@ class LaCrema(page_replacement_algorithm):
                 if histevict is not None :
                     del self.evictionTime[histevict]
                     del self.policyUsed[histevict]
-                    del self.qUsed[histevict]
+                    del self.weightsUsed[histevict]
                 
                 self.evictPage(cacheevict)
                 

@@ -35,7 +35,7 @@ class BANDIT_WITH_ARC(page_replacement_algorithm):
         self.accessedSinceInCache = {}
         self.evictionTime = {}
         self.policyUsed = {}
-        self.qUsed = {}
+        self.weightsUsed = {}
         self.currentPolicy = np.random.randint(0,3)
         self.time = 0
         self.learning = True
@@ -209,7 +209,7 @@ class BANDIT_WITH_ARC(page_replacement_algorithm):
                 self.Hist3.delete(page)
                 
             if pageevict is not None :
-                q = self.qUsed[pageevict]
+                q = self.weightsUsed[pageevict]
                 err = self.error_discount_rate ** (self.time - self.evictionTime[pageevict])
                 reward = np.array([0,0,0], dtype=np.float32)
                 if policyUsed == 0:
@@ -234,7 +234,7 @@ class BANDIT_WITH_ARC(page_replacement_algorithm):
                 if self.currentPolicy == 0:
                     cacheevict = self.getMinValueFromCache(self.accessedTime)
                     self.Cache.delete(cacheevict)
-                    self.qUsed[cacheevict] = self.currentQ
+                    self.weightsUsed[cacheevict] = self.currentQ
                     self.evictionTime[cacheevict] = self.time
                     self.policyUsed[cacheevict] = 0 if not self.learning else -1
                     
@@ -246,7 +246,7 @@ class BANDIT_WITH_ARC(page_replacement_algorithm):
                 if self.currentPolicy == 1:
                     cacheevict = self.getMinValueFromCache(self.frequency)
                     self.Cache.delete(cacheevict)
-                    self.qUsed[cacheevict] = self.currentQ
+                    self.weightsUsed[cacheevict] = self.currentQ
                     self.evictionTime[cacheevict] = self.time
                     self.policyUsed[cacheevict] = 1 if not self.learning else -1
                     
@@ -285,7 +285,7 @@ class BANDIT_WITH_ARC(page_replacement_algorithm):
                                 cacheevict = self.__replace(T1, T2, B1, B2, page)
                         
                     if cacheevict is not None :
-                        self.qUsed[cacheevict] = self.currentQ
+                        self.weightsUsed[cacheevict] = self.currentQ
                         self.evictionTime[cacheevict] = self.time
                         self.policyUsed[cacheevict] = 2 if not self.learning else -1
                     else :
@@ -298,7 +298,7 @@ class BANDIT_WITH_ARC(page_replacement_algorithm):
                     del self.frequency[histevict]
                     del self.accessedSinceInCache[histevict]
                     del self.policyUsed[histevict]
-                    del self.qUsed[histevict]
+                    del self.weightsUsed[histevict]
                     
             if page not in self.frequency:
                 self.frequency[page] = 0

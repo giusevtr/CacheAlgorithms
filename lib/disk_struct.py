@@ -11,7 +11,7 @@ class Disk(CacheDataStruct) :
         self.page_in_disk_count = 0
         self.R = [0 for _ in range(0,2*self.N)]
         self.current = 0
-        self.name=name
+        self.name=name  
         self.freq = {}
 
     def __iter__(self) :
@@ -35,7 +35,7 @@ class Disk(CacheDataStruct) :
         self.freq[page] = cnt
     def add(self,page) :
         if page in self :
-            print("Page already in disk")
+            print("Page already in disk %s" % self.name)
             return False
         if self.page_in_disk_count == self.N :
             print("Failed to add: Disk is full: ", self.name)

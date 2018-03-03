@@ -15,7 +15,7 @@ from algorithms.WALK_MARKING import WALK_MARKING
 from algorithms.PAGERANK_MARKING_SLOW import PAGERANK_MARKING_SLOW
 from algorithms.PAGERANK_MARKING_FAST import PAGERANK_MARKING_FAST
 from algorithms.FAR import FAR
-from algorithms.CEXP_FA import CEXP_FA
+from algorithms.LaCReME_LFU_ARC import LaCReME_LFU_ARC
 from algorithms.RANDOM import RANDOM
 from algorithms.BANDIT import BANDIT
 from algorithms.BANDIT2 import BANDIT2
@@ -69,8 +69,8 @@ def GetAlgorithm(cache_size,name):
         return LaCrema2(cache_size)
     elif lower_name == 'lacreme_simple' :
         return LaCReME_simple(cache_size)
-    elif lower_name == 'cexp_fa' :
-        return CEXP_FA(cache_size)
+    elif lower_name == 'lacreme_lru_arc' :
+        return LaCReME_LFU_ARC(cache_size)
     
     elif lower_name == 'bandit_with_arc' :
         return BANDIT_WITH_ARC(cache_size)   

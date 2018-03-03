@@ -16,7 +16,7 @@ from algorithms.BANDIT import BANDIT
 from algorithms.BANDIT2 import BANDIT2
 from algorithms.BANDIT3 import BANDIT3
 from algorithms import BANDIT_DOUBLE_HIST
-from algorithms.LaCrema import BANDIT_DOUBLE_HIST2
+from algorithms.LaCReME import BANDIT_DOUBLE_HIST2
 from algorithms.BANDIT_WITH_ARC import BANDIT_WITH_ARC
 
 from lib.traces import Trace

@@ -1,9 +1,11 @@
 from lib.disk_struct import Disk
 from algorithms.page_replacement_algorithm import  page_replacement_algorithm
 from lib.priorityqueue import priorityqueue
+from lib.ArcDT import ArcDT
 import numpy as np
 # import matplotlib.pyplot as plt
 import os
+from IPython.core.page import page
 os.environ['TF_CPP_MIN_LOG_LEVEL'] = '3'
 # sys.path.append(os.path.abspath("/home/giuseppe/))
 
@@ -12,15 +14,15 @@ os.environ['TF_CPP_MIN_LOG_LEVEL'] = '3'
 ##      Every time we get a page hit, mark the page and also move it to the MRU position
 ## Page faults:
 ##      Evict an unmark page with the probability proportional to its position in the LRU list.
-class LaCReME(page_replacement_algorithm):
+class LaCReME_LFU_ARC(page_replacement_algorithm):
 
     def __init__(self, N):
         self.N = N
-        self.CacheRecency = Disk(N)
+        self.CacheARC = ArcDT(N)
         self.CacheFrequecy = priorityqueue(N)
         
-        self.Hist1 = Disk(N)        
-        self.Hist2 = priorityqueue(N)        
+        self.Hist1 = Disk(N, name='Hist1')        
+        self.Hist2 = Disk(N,name='Hist2')        
         
         ## Config variables
         self.decayRate = 1
@@ -28,8 +30,6 @@ class LaCReME(page_replacement_algorithm):
         self.lamb = 0.05
         self.learning_phase = N/2
         self.error_discount_rate = (0.005)**(1.0/N)
-#         self.error_discount_rate = 1
-        
         ## 
         self.learning = True
         self.policy = 0
@@ -67,47 +67,54 @@ class LaCReME(page_replacement_algorithm):
         k=list(d.keys())
         return k[v.index(min(v))]
     
-    def getMinValueFromCache(self, values):
-        minpage,first = -1, True
-        for q in self.Cache :
-            if first or values[q] < values[minpage] :
-                minpage,first=q,False
-        return minpage
-    
     ##########################################
     ## Add a page to cache using policy 'poly'
     ##########################################
     def addToCache(self, page,pagefreq=0):
-        self.CacheRecency.add(page)
+        self.CacheARC.request(page)
+        self.CacheARC.setCount(page=page, cnt=pagefreq)
         self.CacheFrequecy.add(page)
-        self.CacheRecency.increaseCount(page, amount=pagefreq)
         self.CacheFrequecy.increase(page, amount=pagefreq)
+
     ######################
     ## Get LFU or LFU page
     ######################    
-    def selectEvictPage(self, policy):
-        r = self.CacheRecency.getIthPage(0)
-        f = self.CacheFrequecy.peaktop()
+    def updateCacheUsingPolicy(self, policy, requested_page, page_freq):
         pageToEvit,policyUsed = None, None
-        if r == f :
-            pageToEvit,policyUsed = r,-1
-        elif policy == 0:
+        if policy == 0:
+            ## Use ARC
+            r = self.CacheARC.request(requested_page)
+            self.CacheARC.setCount(requested_page, page_freq)
+            evict_page_freq = self.CacheFrequecy.getCount(r)
+            # Add page to LFU
+            self.CacheFrequecy.delete(r)
+            self.CacheFrequecy.add(requested_page)
+            
             pageToEvit,policyUsed = r,0
         elif policy == 1:
+            ## Use LFU
+            evict_page_freq = self.CacheFrequecy.getCount(self.CacheFrequecy.peaktop())
+            f = self.CacheFrequecy.popmin()
+            self.CacheFrequecy.add(requested_page)
+            
+            ## Add page to arc
+            self.CacheARC.delete(f)
+            self.CacheARC.add(requested_page)
+            
             pageToEvit,policyUsed = f,1
-        return pageToEvit,policyUsed
+
+        return pageToEvit,policyUsed,evict_page_freq
     
     def evictPage(self, pg):
-        self.CacheRecency.delete(pg)
+        self.CacheARC.delete(pg)
         self.CacheFrequecy.delete(pg)
     
     ##############################################################
     ## There was a page hit to 'page'. Update the data structures
     ##############################################################
     def pageHitUpdate(self, page):
-        if page in self.CacheRecency and page in self.CacheFrequecy:
-            self.CacheRecency.moveBack(page)
-            self.CacheRecency.increaseCount(page)
+        if page in self.CacheARC and page in self.CacheFrequecy:
+            self.CacheARC.request(page)
             self.CacheFrequecy.increase(page)
     
     #########################
@@ -115,6 +122,7 @@ class LaCReME(page_replacement_algorithm):
     #########################
     def getQ(self):
         return (1-self.lamb) * self.W + self.lamb*np.ones(2)/2
+    
     ############################################
     ## Choose a page based on the q distribution
     ############################################
@@ -135,8 +143,8 @@ class LaCReME(page_replacement_algorithm):
     def request(self,page) :
         page_fault = False
         self.time = self.time + 1
-        if self.time % self.learning_phase == 0 :
-            self.learning = not self.learning
+#         if self.time % self.learning_phase == 0 :
+#             self.learning = not self.learning
         
         #####################
         ## Visualization data
@@ -146,10 +154,6 @@ class LaCReME(page_replacement_algorithm):
         self.Y1 = np.append(self.Y1, prob[0])
         self.Y2 = np.append(self.Y2, prob[1])
         
-        if self.time % self.N == 0 :
-            self.CacheFrequecy.decay(self.decay_factor)
-            self.Hist2.decay(self.decay_factor)
-
         ##########################
         ## Process page request 
         ##########################
@@ -170,7 +174,7 @@ class LaCReME(page_replacement_algorithm):
                 policyUsed = 0
             elif page in self.Hist2:
                 pageevict = page
-                histpage_freq = self.Hist2.getFreq(page) ## Get the page frequency in history
+                histpage_freq = self.Hist2.getCount(page) ## Get the page frequency in history
                 self.Hist2.delete(page)
                 policyUsed = 1
             if pageevict is not None :
@@ -193,18 +197,16 @@ class LaCReME(page_replacement_algorithm):
             ####################
             ## Remove from Cache
             ####################
-            if self.CacheRecency.size() == self.N:
-                
+            if self.CacheARC.size() == self.N:
                 ################
                 ## Choose Policy
                 ################
                 if  not self.learning :
-                    act = np.argmax(self.W)
+                    act = np.argmax(self.getQ())
                 else :
                     act = self.chooseRandom()
-
-                cacheevict,poly = self.selectEvictPage(act)
-                pagefreq = self.CacheFrequecy.getCount(cacheevict) 
+                
+                cacheevict,poly,pagefreq = self.updateCacheUsingPolicy(act, page, histpage_freq)
                 
                 self.policyUsed[cacheevict] = poly
                 self.weightsUsed[cacheevict] = self.getQ()
@@ -225,18 +227,16 @@ class LaCReME(page_replacement_algorithm):
                     self.Hist1.setCount(cacheevict, pagefreq)
                 else:
                     if self.Hist2.size() == self.N :
-                        histevict = self.Hist2.popmin()
+                        histevict = self.Hist2.getIthPage(0)
                     self.Hist2.add(cacheevict)
-                    self.Hist2.increase(cacheevict, pagefreq-1)
+                    self.Hist2.setCount(cacheevict, pagefreq)
                 
                 if histevict is not None :
                     del self.evictionTime[histevict]
                     del self.policyUsed[histevict]
                     del self.weightsUsed[histevict]
-                
-                self.evictPage(cacheevict)
-                
-            self.addToCache(page, pagefreq=histpage_freq)
+            else:
+                self.addToCache(page, pagefreq=histpage_freq)
             
             page_fault = True
 

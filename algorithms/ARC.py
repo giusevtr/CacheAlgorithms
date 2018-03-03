@@ -1,6 +1,6 @@
-import sys
 from lib.disk_struct import Disk
 from algorithms.page_replacement_algorithm import  page_replacement_algorithm
+import numpy as np
 ## Keep a LRU list.
 ## Page hits:
 ##      Every time we get a page hit, mark the page and also move it to the MRU position
@@ -9,7 +9,6 @@ from algorithms.page_replacement_algorithm import  page_replacement_algorithm
 class ARC(page_replacement_algorithm):
 
     def __init__(self, N):
-        self.T = []
         self.N = N
         self.T1 = Disk(N)
         self.T2 = Disk(N)
@@ -17,11 +16,22 @@ class ARC(page_replacement_algorithm):
         self.B2 = Disk(2*N)
         self.P = 0
         
+        self.time = 0
+        self.X = []
+        self.Y = []
+        
+    def visualize(self, plt):
+        l1, = plt.plot(self.X,self.Y,'k-', label='ARC p-value')
+        return [l1]
+    
     def get_N(self) :
         return self.N
 
     def request(self,page) :
         page_fault = False
+        self.time += 1
+        self.X.append(self.time)
+        self.Y.append(1.0*self.P / self.N)
         t1 = self.T1.size()
         t2 = self.T2.size()
         b1 = self.B1.size()
