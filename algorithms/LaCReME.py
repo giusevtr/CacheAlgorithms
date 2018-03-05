@@ -5,6 +5,7 @@ import numpy as np
 import Queue
 # import matplotlib.pyplot as plt
 import os
+from scipy.constants.constants import alpha
 os.environ['TF_CPP_MIN_LOG_LEVEL'] = '3'
 # sys.path.append(os.path.abspath("/home/giuseppe/))
 
@@ -68,7 +69,7 @@ class LaCReME(page_replacement_algorithm):
         ax.set_xlim(np.min(self.X), np.max(self.X))
         l1, = plt.plot(self.X,self.Y1, 'b-', label='W_lru')
         l2, = plt.plot(self.X,self.Y2, 'r-', label='W_lfu')
-        l3, = plt.plot(self.X, self.NewPages, 'g-', label='New Pages')
+        l3, = plt.plot(self.X, self.NewPages, 'g-', label='New Pages', alpha=0.6)
         return [l1,l2,l3]
         
     def __keyWithMinVal(self,d):
