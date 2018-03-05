@@ -131,7 +131,7 @@ if __name__ == "__main__" :
     ax.set_xlim(0,cols)
     for i in range(0,rows):        
         upper = data[i,:]
-        l, = plt.plot(T,upper,c=colors[i],label=algorithm[i],alpha=1,linewidth=(rows-i)*2)
+        l, = plt.plot(T,upper,c=colors[i],label=algorithm[i],alpha=1,linewidth=(rows-i)*1)
         labels.append(l)
 
     hit_rate_text = 'algorithm:  hit-rate\n'
