@@ -88,7 +88,11 @@ if __name__ == "__main__" :
     
     for name in algorithm :
         algo = GetAlgorithm(cache_size, name)
+        win = cache_size*WINDOW_SIZE
         hits, part_hit_rate, hit_sum = algo.test_algorithm(pages, partition_size=cache_size*WINDOW_SIZE)
+        
+        
+        
         
         lbl = algo.visualize(plt)
         
@@ -97,7 +101,9 @@ if __name__ == "__main__" :
 #         temp = 1751
 #         plt.axvline(x=temp,color='b')
 #         plt.axvline(x=10000+temp,color='r')
-        data.append(part_hit_rate)
+#         data.append(part_hit_rate)
+        temp = np.append(np.zeros(win), hit_sum[:-win])
+        data.append(hit_sum-temp)
         hit_rate.append(round(100.0 * hits / num_pages,2))
         print("{:<20} {:<20} {:<20} {:<20}  {:<20}".format(name, round(100.0 * hits / num_pages,2), hits, num_pages, trace_obj.unique_pages()))
 
@@ -121,7 +127,7 @@ if __name__ == "__main__" :
     plt.axvline(x=cols/2)
     cnt = rows
     labels = []
-    ax.set_ylim(-.05,1.05)
+#     ax.set_ylim(-.05,1.05)
     ax.set_xlim(0,cols)
     for i in range(0,rows):        
         upper = data[i,:]
