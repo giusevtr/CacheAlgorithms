@@ -26,8 +26,8 @@ class page_replacement_algorithm :
 
         N = self.get_N()
 
-        part_hits = 0
-        part_count = 0
+#         part_hits = 0
+#         part_count = 0
 
         partition_hit_rate = []
         hit_sum = []
@@ -36,16 +36,16 @@ class page_replacement_algorithm :
         for i,p in enumerate(pages) :
             if not self.request(p) and i > N:
                 hits += 1
-                part_hits += 1
-            if i > N :
-                part_count += 1
+#                 part_hits += 1
+#             if i > N :
+#                 part_count += 1
 
             hit_sum.append(hits)
 
-            if part_count == partition_size or i+1 == num_pages:
-                partition_hit_rate.append(round(1.0 * part_hits / part_count,2))
-                part_hits = 0
-                part_count = 0
+#             if part_count == partition_size or i+1 == num_pages:
+#                 partition_hit_rate.append(round(1.0 * part_hits / part_count,2))
+#                 part_hits = 0
+#                 part_count = 0
 
             ## Progres
             percent = int ((100.0 * (i+1) / num_pages))
