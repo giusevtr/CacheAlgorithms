@@ -63,9 +63,9 @@ class Disk(CacheDataStruct) :
         return False
 
     def deleteFront(self):
-        if self.size() > 0 :
+        if self.size() > 0:
             front = self.getIthPage(0)
-            self.delete(front)
+            assert self.delete(front), "Error: deleteFront Failed"
             return front
         print('deleteFront Failed')
         return None
@@ -132,7 +132,7 @@ class Disk(CacheDataStruct) :
         return data
 
     def get_data_as_set(self) :
-        return set(self.get_data())
+        return set(self.getData())
 
     def size(self) :
         return self.page_in_disk_count

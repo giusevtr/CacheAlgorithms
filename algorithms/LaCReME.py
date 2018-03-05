@@ -144,8 +144,8 @@ class LaCReME(page_replacement_algorithm):
     def request(self,page) :
         page_fault = False
         self.time = self.time + 1
-        if self.time % self.learning_phase == 0 :
-            self.learning = not self.learning
+#         if self.time % self.learning_phase == 0 :
+#             self.learning = not self.learning
         
         #####################
         ## Visualization data

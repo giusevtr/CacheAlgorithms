@@ -144,11 +144,12 @@ class LaCReME_context1(page_replacement_algorithm):
     def request(self,page) :
         page_fault = False
         self.time = self.time + 1
-        if self.time % self.learning_phase == 0 :
-            self.learning = not self.learning
+#         if self.time % self.learning_phase == 0 :
+#             self.learning = not self.learning
         
+        partitions = 5
         newpagesratio = 1.0*self.sum / self.N
-        weigthid = int(newpagesratio*10) if newpagesratio < 1.0 else 9
+        weigthid = int(newpagesratio*partitions) if newpagesratio < 1.0 else partitions-1
         
         #####################
         ## Visualization data
@@ -160,8 +161,6 @@ class LaCReME_context1(page_replacement_algorithm):
         notInHistory = 0
         
         
-        
-
         ##########################
         ## Process page request 
         ##########################

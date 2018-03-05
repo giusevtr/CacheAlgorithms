@@ -29,7 +29,7 @@ class ArcDT:
     def getRank(self, page):
         print('getRank not implemented')
     def size(self) :
-        return self.N
+        return self.T1.size( ) + self.T2.size()
     
     def getLeastFrequent(self):
         print('getLeastFrequent not implemented')
@@ -44,11 +44,38 @@ class ArcDT:
     def add(self, page):
         t1 = self.T1.size()
         t2 = self.T2.size()
+        b1 = self.B1.size()
         if t1 + t2 == self.N :
             print('Error adding. DT is full')
-        if not self.T1.add(page):
-            print('error adding.')
             
+        if page in self.B1:
+            assert self.B1.delete(page)
+            
+            assert self.T2.size()< self.N
+            assert self.T2.add(page)
+            
+        elif page in self.B2:
+            assert self.B2.delete(page)
+            
+            assert self.T2.size()< self.N
+            assert self.T2.add(page)
+            
+        else:
+            if t1 + b1 == self.N:
+                assert t1 < self.N, 't1 = %d' % t1
+                assert b1 > 0 , 't1 = %d' % b1
+                assert self.B1.deleteFront() is not None
+            assert self.T1.add(page)
+            
+        assert page not in self.B1
+        assert page not in self.B2
+        assert page in self.T1 or page in self.T2
+        assert not (page in self.T1 and page in self.T2)
+        
+        
+        
+        
+        
     def delete(self, page):
         if page in self.T1:
             self.T1.delete(page)
@@ -80,23 +107,23 @@ class ArcDT:
 
             assert self.T2.add(page), 'failed adding to T2 at Case 1'
 
-        elif self.B1.inDisk(page) :
+        elif page in self.B1 :
             if self.B2.size() > self.B1.size() :
                 r = self.B2.size() / self.B1.size()
             else :
                 r = 1
             self.P = min(self.P + r, self.N)
-            evited_page = self.__replace(page, self.P)
             assert self.B1.delete(page)
+            evited_page = self.__replace(page, self.P)
             assert self.T2.add(page), 'failed adding to T2 at case B1'
-        elif self.B2.inDisk(page) :
+        elif page in self.B2 :
             if self.B1.size() > self.B2.size() :
                 r = self.B1.size() / self.B2.size()
             else :
                 r = 1
             self.P = max(self.P - r, 0)
-            evited_page = self.__replace(page, self.P)
             assert self.B2.delete(page)
+            evited_page = self.__replace(page, self.P)
             assert self.T2.add(page), 'failed adding to T2  at case B2'
         else :
             if t1 + b1 == self.N :
@@ -113,16 +140,37 @@ class ArcDT:
                     evited_page = self.__replace(page, self.P)
 
             # Add page to the MRU position in T1
+            assert page not in self.B1, 'Error. %d is not suppose to be in B1. debug %d %d' % (page,self.B1.inDisk(page), page in self.B1)
             assert self.T1.add(page), 'failed adding page to T1 at case 4'
-
+        
+        data = self.T1.get_data_as_set() | self.T2.get_data_as_set()
+        for p in data:
+            self.__checkpage(p)
+        
         return evited_page
-
+    
+    
+    def __checkpage(self, page):
+        int1 = 1 if page in self.T1 else 0
+        int2 = 1 if page in self.T2 else 0
+        inb1 = 1 if page in self.B1 else 0
+        inb2 = 1 if page in self.B2 else 0
+        assert int1 + int2 + inb1 + inb2 == 1, "error: %d can only be in one list. count = %d %d %d %d = %d" % (page, int1, int2, inb1 , inb2,int1 + int2 + inb1 + inb2 ) 
+        
+        
+    
     def __replace(self,x, P) :
         
         if self.T1.size() > 0 and (self.T1.size() > P or  (self.B1.inDisk(x) and self.T1.size() == int(P))):
             y = self.T1.deleteFront()
             assert y is not None, 'Error deleting front of T1 in replace (Case 1)'
-            assert self.B1.add(y), 'failed adding page to B1 at replace 1(Case 1)'
+            
+            assert y not in self.T1, 'Error. %d is not suppose to be in T1' % y
+            
+            assert self.B1.add(y), 'failed adding page to B1 at replace 1(Case 1) %d' % y
+            
+            assert y not in self.T1 and y in self.B1, "Error moving from T1 to B1"
+            
         else:
             y = self.T2.deleteFront()
             assert y is not None, 'Error deleting front of T2 in replace (Case 2)'

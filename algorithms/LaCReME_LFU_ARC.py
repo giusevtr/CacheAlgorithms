@@ -113,10 +113,10 @@ class LaCReME_LFU_ARC(page_replacement_algorithm):
     ## There was a page hit to 'page'. Update the data structures
     ##############################################################
     def pageHitUpdate(self, page):
-        if page in self.CacheARC and page in self.CacheFrequecy:
-            self.CacheARC.request(page)
-            self.CacheFrequecy.increase(page)
-    
+        assert page in self.CacheARC and page in self.CacheFrequecy
+        self.CacheARC.request(page)
+        self.CacheFrequecy.increase(page)
+            
     #########################
     ## Get the Q distribution
     #########################
@@ -219,15 +219,16 @@ class LaCReME_LFU_ARC(page_replacement_algorithm):
                 ## Evict to history
                 ###################
                 histevict = None
-                if (poly == 0) or (poly==-1 and np.random.rand() <0.5):
+                if (poly == 0) or (poly==-1 and np.random.rand() < 0.5):
                     if self.Hist1.size() == self.N :
                         histevict = self.Hist1.getIthPage(0)
                         self.Hist1.delete(histevict)
-                    self.Hist1.add(cacheevict)
+                    assert self.Hist1.add(cacheevict), "Error adding to Hist1."
                     self.Hist1.setCount(cacheevict, pagefreq)
                 else:
                     if self.Hist2.size() == self.N :
                         histevict = self.Hist2.getIthPage(0)
+                        self.Hist2.delete(histevict)
                     self.Hist2.add(cacheevict)
                     self.Hist2.setCount(cacheevict, pagefreq)
                 
@@ -235,6 +236,9 @@ class LaCReME_LFU_ARC(page_replacement_algorithm):
                     del self.evictionTime[histevict]
                     del self.policyUsed[histevict]
                     del self.weightsUsed[histevict]
+                    
+                ## Delete page from Cache
+                
             else:
                 self.addToCache(page, pagefreq=histpage_freq)
             
