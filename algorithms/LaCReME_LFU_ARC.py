@@ -5,7 +5,6 @@ from lib.ArcDT import ArcDT
 import numpy as np
 # import matplotlib.pyplot as plt
 import os
-from IPython.core.page import page
 os.environ['TF_CPP_MIN_LOG_LEVEL'] = '3'
 # sys.path.append(os.path.abspath("/home/giuseppe/))
 
