@@ -49,14 +49,25 @@ class ArcDT:
             print('Error adding. DT is full')
             
         if page in self.B1:
-            assert self.B1.delete(page)
             
+            if self.B2.size() > self.B1.size() :
+                r = self.B2.size() / self.B1.size()
+            else :
+                r = 1
+            self.P = min(self.P + r, self.N)
+            
+            assert self.B1.delete(page)
             assert self.T2.size()< self.N
             assert self.T2.add(page)
             
         elif page in self.B2:
-            assert self.B2.delete(page)
+            if self.B1.size() > self.B2.size() :
+                r = self.B1.size() / self.B2.size()
+            else :
+                r = 1
+            self.P = max(self.P - r, 0)
             
+            assert self.B2.delete(page)
             assert self.T2.size()< self.N
             assert self.T2.add(page)
             
