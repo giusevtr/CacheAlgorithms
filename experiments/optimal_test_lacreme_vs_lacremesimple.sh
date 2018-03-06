@@ -1,9 +1,9 @@
 #!/bin/bash
 
-CACHE_SIZE=(500 500)
+CACHE_SIZE=0.2
 FILES=(LFU_LRU_LFU_LRU.txt LRU_LFU_LRU_LFU.txt)
 ALGORITHMS=(lacreme lacreme_simple)
 
 for ((i=0;i<${#CACHE_SIZE[@]};++i)); do
-    python ../run.py "${CACHE_SIZE[i]}" "${FILES[i]}" "${ALGORITHMS[@]}"
+    python ../run.py "${CACHE_SIZE}" "${FILES[i]}" "${ALGORITHMS[@]}"
 done

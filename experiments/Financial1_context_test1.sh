@@ -1,6 +1,6 @@
 #!/bin/bash
 
-CACHE_SIZE=(500)
+CACHE_SIZE=0.2
 FILES=(Financial1_50K.spc)
 ALGORITHMS=(arc LaCReME_context1)
 

@@ -5,4 +5,6 @@ data/*
 *.jpeg
 *.png
 *.txt
-
+*.swp
+*.ods#
+.ods
