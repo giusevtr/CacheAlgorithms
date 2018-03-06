@@ -28,8 +28,8 @@ class LaCReME(page_replacement_algorithm):
         self.decayRate = 1
         self.epsilon = 0.90
         self.lamb = 0.05
-        self.learning_phase = N/2
         self.error_discount_rate = (0.005)**(1.0/N)
+#         self.learning_phase = N/2
 #         self.error_discount_rate = 1
         
         ## 
