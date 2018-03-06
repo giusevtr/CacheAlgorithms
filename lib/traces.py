@@ -72,12 +72,19 @@ class Trace:
         del self.traces[:]
 
         if file_name.endswith('.blkparse') :
-            p = subprocess.Popen(["lib/trace_parse", file_name], stdout=subprocess.PIPE)
-            trace = p.communicate()[0].split('\n')
-
-            for node_name in trace :
-                self.traces.append(node_name)
-                self.node_set.add( node_name)
+            for line in f :
+                try :
+                    row = line.split(' ')
+                    node_name = int(row[3])
+                    self.traces.append(node_name)
+                    # print(node_name)
+                    # for i in range(int(size / self.page_size)) :
+                    #    self.traces.append({'name' : node_name , 'id' : self.get_node_id(node_name), 'time' : time_stamp})
+                    #    node_name += self.page_size
+                except :
+                    exc_type, exc_value, exc_traceback = sys.exc_info()
+                    print('Error')
+                    print(exc_type, exc_value, exc_traceback)
 
         elif file_name.endswith('.spc') :
             temp = []
