@@ -15,8 +15,6 @@ ANNOTATION_HEIGHT = 0.4
 # VERTICAL_LINES = {41754 - 10000, 41754 - 20000,41754 - 30000,41754 - 40000}
 VERTICAL_LINES = {}
 
-
-
 def getLowLim(data, i):
     n = data.shape[1] # columns
     m = data.shape[0] # rows
@@ -49,9 +47,13 @@ if __name__ == "__main__" :
         print('Must provide more than 3 arguments')
         sys.exit(0)
 
-    cache_size = int(sys.argv[1])
+
+    cache_size_per = float(sys.argv[1])
     experiment_name = sys.argv[2]
     algorithm = sys.argv[3:]
+    
+    
+    assert cache_size_per > 0 and cache_size_per < 1, 'cache_size must be between 0 and 1'
     
     ###############################################################
     ## Plot title
@@ -67,10 +69,17 @@ if __name__ == "__main__" :
     pages = trace_obj.get_request()
     num_pages = len(pages)
 
+    unique_pages = trace_obj.unique_pages()
+    print 'unique_pages = ', unique_pages
+    cache_size = int(unique_pages*cache_size_per)
+    
     colors = ['y','b','r','k','g']
     color_id = 0
     labels = []
     max_column_height = 0
+    
+    
+    
     
     data = []
     hit_rate = []
@@ -89,6 +98,7 @@ if __name__ == "__main__" :
     for name in algorithm :
         algo = GetAlgorithm(cache_size, name)
         win = cache_size*WINDOW_SIZE
+        print 'cache_size = ', cache_size
         hits, part_hit_rate, hit_sum = algo.test_algorithm(pages, partition_size=cache_size*WINDOW_SIZE)
         
         
