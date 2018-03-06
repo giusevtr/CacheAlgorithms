@@ -43,14 +43,16 @@ if __name__ == "__main__" :
     
     OUTPUT_FOLDER='output/'
     
-    if len(sys.argv) <= 3 :
+    if len(sys.argv) <= 4 :
         print('Must provide more than 3 arguments')
         sys.exit(0)
 
 
     cache_size_per = float(sys.argv[1])
     experiment_name = sys.argv[2]
-    algorithm = sys.argv[3:]
+    blocksize = int(sys.argv[3])
+    algorithm = sys.argv[4:]
+    
     
     print cache_size_per
     
@@ -65,7 +67,7 @@ if __name__ == "__main__" :
     ###############################################################
     ## Read data
     ###############################################################
-    trace_obj = Trace()
+    trace_obj = Trace(blocksize)
     trace_obj.read(DATA_FOLDER+experiment_name)
     pages = trace_obj.get_request()
     num_pages = len(pages)
