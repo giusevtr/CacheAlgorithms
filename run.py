@@ -52,6 +52,7 @@ if __name__ == "__main__" :
     experiment_name = sys.argv[2]
     algorithm = sys.argv[3:]
     
+    print cache_size_per
     
     assert cache_size_per > 0 and cache_size_per < 1, 'cache_size must be between 0 and 1'
     
@@ -70,16 +71,15 @@ if __name__ == "__main__" :
     num_pages = len(pages)
 
     unique_pages = trace_obj.unique_pages()
-    print 'unique_pages = ', unique_pages
-    cache_size = int(unique_pages*cache_size_per)
+    cache_size = int(round(unique_pages*cache_size_per))
     
     colors = ['y','b','r','k','g']
     color_id = 0
     labels = []
     max_column_height = 0
     
-    
-    
+    print 'unique_pages = ', unique_pages
+    print 'cache_size = ', cache_size
     
     data = []
     hit_rate = []
@@ -91,18 +91,13 @@ if __name__ == "__main__" :
     ax = plt.subplot(2,1,1)
     ax.set_title('internal state')
     xlim1,xlim2 = 0,0
-    VERTICAL_LINES
     for v in VERTICAL_LINES :
         plt.axvline(x=v,color='g')
     
     for name in algorithm :
         algo = GetAlgorithm(cache_size, name)
         win = cache_size*WINDOW_SIZE
-        print 'cache_size = ', cache_size
         hits, part_hit_rate, hit_sum = algo.test_algorithm(pages, partition_size=cache_size*WINDOW_SIZE)
-        
-        
-        
         
         lbl = algo.visualize(plt)
         
@@ -134,7 +129,10 @@ if __name__ == "__main__" :
     rows = data.shape[0]
     cols = data.shape[1]
     T = np.array(range(0,cols))
-    plt.axvline(x=cols/2)
+    
+    for v in VERTICAL_LINES :
+        plt.axvline(x=v,color='g')
+    
     cnt = rows
     labels = []
 #     ax.set_ylim(-.05,1.05)
