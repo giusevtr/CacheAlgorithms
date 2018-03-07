@@ -26,6 +26,7 @@ from algorithms.LaCrema2 import LaCrema2
 from algorithms.LaCReME_context1 import LaCReME_context1
 from algorithms.LaCReME_LFU_ARC import LaCReME_LFU_ARC
 from algorithms.LaCReME_T1T2 import LaCReME_T1T2
+from algorithms.LaCReME_v2 import LaCReME_v2
 
 
 from algorithms.BANDIT_WITH_ARC import BANDIT_WITH_ARC
@@ -82,6 +83,8 @@ def GetAlgorithm(cache_size,name):
         return LaCReME_LFU_ARC(cache_size)
     elif lower_name == 'lacreme_t1t2' :
         return LaCReME_T1T2(cache_size)
+    elif lower_name == 'lacreme_v2' :
+        return LaCReME_v2(cache_size)
 
     elif lower_name == 'bandit_with_arc' :
         return BANDIT_WITH_ARC(cache_size)   

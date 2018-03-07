@@ -1,5 +1,6 @@
 import sys
 import os
+import time
 import numpy as np
 from algorithms.GetAlgorithm import GetAlgorithm
 from lib.traces import Trace
@@ -89,7 +90,7 @@ if __name__ == "__main__" :
     
     data = []
     hit_rate = []
-    print("{:<20} {:<20} {:<20} {:<20} {:<20}".format("Name","Hit Ratio(%)", "Hit Count", "Total Request","Unique Pages" ) )
+    print("{:<20} {:<20} {:<20} {:<20} {:<20} {:<20}".format("Name","Hit Ratio(%)", "Hit Count", "Total Request","Unique Pages", "Time") )
     labels = []
     ########################
     ## Plot internal state
@@ -100,10 +101,14 @@ if __name__ == "__main__" :
     for v in VERTICAL_LINES :
         plt.axvline(x=v,color='g')
     
+
     for name in algorithm :
         algo = GetAlgorithm(cache_size, name)
         win = cache_size*WINDOW_SIZE
+        
+        start = time.time()
         hits, part_hit_rate, hit_sum = algo.test_algorithm(pages, partition_size=cache_size*WINDOW_SIZE)
+        end = time.time()
         
         lbl = algo.visualize(plt)
         
@@ -116,7 +121,7 @@ if __name__ == "__main__" :
         temp = np.append(np.zeros(win), hit_sum[:-win])
         data.append(hit_sum-temp)
         hit_rate.append(round(100.0 * hits / num_pages,2))
-        print("{:<20} {:<20} {:<20} {:<20}  {:<20}".format(name, round(100.0 * hits / num_pages,2), hits, num_pages, trace_obj.unique_pages()))
+        print("{:<20} {:<20} {:<20} {:<20} {:<20}  {:<20}".format(name, round(100.0 * hits / num_pages,2), hits, num_pages, trace_obj.unique_pages(), round(end-start,3)))
 
         sys.stdout.flush()
     ax.set_ylim(0,1)
@@ -145,13 +150,13 @@ if __name__ == "__main__" :
     ax.set_xlim(0,cols)
     for i in range(0,rows):        
         upper = data[i,:]
-        l, = plt.plot(T,upper,c=colors[i],label=algorithm[i],alpha=1,linewidth=(rows-i)*1)
+        l, = plt.plot(T,upper,c=colors[i],label=algorithm[i],alpha=0.5,linewidth=(rows-i)*1)
         labels.append(l)
 
     hit_rate_text = 'algorithm:  hit-rate\n'
     for i in range(0, rows) :
         hit_rate_text += '%s:  %f\n' % (algorithm[i], hit_rate[i])
-    ax.annotate(hit_rate_text,(0.05,ANNOTATION_HEIGHT),textcoords='axes fraction',alpha=0.9, size=12)
+    ax.annotate(hit_rate_text,(0.05,ANNOTATION_HEIGHT),textcoords='axes fraction',alpha=1, size=12)
     
     plt.xlabel('Request Window Number')
     plt.ylabel('Hit Rate')
