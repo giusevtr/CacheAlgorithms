@@ -52,6 +52,7 @@ class Trace:
         
         
         if file_name.endswith('.blkparse') :
+            self.blocksize = 512
             for line in f :
                 try :
                     row = line.split(' ')
