@@ -55,8 +55,8 @@ class Trace:
             for line in f :
                 try :
                     row = line.split(' ')
-                    offsets.append(int[row[3]])
-                    sizes.append(int[row[4]])
+                    offsets.append(int(row[3]))
+                    sizes.append(int(row[4])*512)
                 except :
                     exc_type, exc_value, exc_traceback = sys.exc_info()
                     print(exc_type, exc_value, exc_traceback)

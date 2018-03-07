@@ -1,8 +1,8 @@
 #!/bin/bash
 
-CACHE_SIZE=0.2
-FILES=(Financial1_50K.spc)
-ALGORITHMS=(LRU LFU ARC LaCReME)
+CACHE_SIZE=0.1
+FILES=(FIU_traces.blkparse)
+ALGORITHMS=(LRU ARC LaCReME)
 BLOCKSIZE=512
 
 for ((i=0;i<${#FILES[@]};++i)); do

@@ -1,8 +1,8 @@
 #!/bin/bash
 
-CACHE_SIZE=0.2
+CACHE_SIZE=0.1
 FILES=(Financial1_50K.spc)
-ALGORITHMS=(LRU LFU ARC LaCReME)
+ALGORITHMS=(LRU LFU ARC LaCReME_T1T2)
 BLOCKSIZE=512
 
 for ((i=0;i<${#FILES[@]};++i)); do

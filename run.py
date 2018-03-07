@@ -48,15 +48,15 @@ if __name__ == "__main__" :
         sys.exit(0)
 
 
+    assert float(sys.argv[1]) > 0,  'cache_size must be positive'
+    
+    
+    
     cache_size_per = float(sys.argv[1])
     experiment_name = sys.argv[2]
     blocksize = int(sys.argv[3])
     algorithm = sys.argv[4:]
     
-    
-    print cache_size_per
-    
-    assert cache_size_per > 0 and cache_size_per < 1, 'cache_size must be between 0 and 1'
     
     ###############################################################
     ## Plot title
@@ -73,7 +73,11 @@ if __name__ == "__main__" :
     num_pages = len(pages)
 
     unique_pages = trace_obj.unique_pages()
-    cache_size = int(round(unique_pages*cache_size_per))
+    
+    if cache_size_per < 1:
+        cache_size = int(round(unique_pages*cache_size_per))
+    else :
+        cache_size = int(cache_size_per)
     
     colors = ['y','b','r','k','g']
     color_id = 0

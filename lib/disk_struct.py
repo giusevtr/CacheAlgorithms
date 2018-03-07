@@ -70,6 +70,15 @@ class Disk(CacheDataStruct) :
         print('deleteFront Failed')
         return None
 
+    def getFront(self):
+        return self.getIthPage(0)
+
+    def popFront(self):
+        f = self.getIthPage(0)
+        self.delete(f)
+        return f
+
+
     def clear(self):
         for p in self:
             self.delete(p)
