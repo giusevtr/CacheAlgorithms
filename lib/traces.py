@@ -104,7 +104,7 @@ class Trace:
                     print(exc_type, exc_value, exc_traceback)
             # print("=====================")
         elif file_name.endswith('.txt') :
-            
+            self.blocksize = 1
             for tr_id,line in enumerate(f) :
                 x = int(line)
                 
