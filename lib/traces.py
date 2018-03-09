@@ -13,6 +13,7 @@ class Trace:
         self.node_set = set()
         self.idMap = {}
         self.blocksize= bk
+        self.vertical_lines = []
         
     def get_request(self):
         # r = []
@@ -53,9 +54,18 @@ class Trace:
         
         if file_name.endswith('.blkparse') :
             self.blocksize = 512
+            startTime = None
+            timeLimit = 2e9
             for line in f :
+                
                 try :
                     row = line.split(' ')
+                    ctime = int(row[0])
+                    if startTime is None :
+                        startTime = ctime
+                    elif ctime - startTime >= timeLimit:
+                        break
+                         
                     offsets.append(int(row[3]))
                     sizes.append(int(row[4])*512)
                 except :
@@ -73,12 +83,15 @@ class Trace:
                     print(exc_type, exc_value, exc_traceback)
             # print("=====================")
         elif file_name.endswith('.txt') :
-            for line in f :
+            
+            for tr_id,line in enumerate(f) :
                 x = int(line)
-                self.traces.append(x)
-                self.node_set.add(x)
-                offsets.append(x)
-                sizes.append(1)
+                
+                if x < 0 :
+                    self.vertical_lines.append(tr_id)
+                else :
+                    offsets.append(x)
+                    sizes.append(1)
         
         for off, sz  in zip(offsets, sizes) :
             numreq = sz / self.blocksize

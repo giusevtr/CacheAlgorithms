@@ -2,6 +2,8 @@ import random
 import sys
 from lib.disk_struct import Disk
 from algorithms.page_replacement_algorithm import  page_replacement_algorithm
+from lib.CacheLinkedList import  CacheLinkedList
+
 # sys.path.append(os.path.abspath("/home/giuseppe/))
 
 ## Keep a LRU list.
@@ -14,7 +16,7 @@ class LRU(page_replacement_algorithm):
     def __init__(self, N):
         self.T = []
         self.N = N
-        self.disk = Disk(N)
+        self.disk = CacheLinkedList(N)
     def get_N(self) :
         return self.N
 
@@ -25,7 +27,7 @@ class LRU(page_replacement_algorithm):
         else :
             if self.disk.size() == self.N :
                 ## Remove LRU page
-                lru = self.disk.getIthPage(0)
+                lru = self.disk.getFront()
                 self.disk.delete(lru)
             # Add page to the MRU position
             self.disk.add(page)

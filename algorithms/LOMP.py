@@ -8,6 +8,7 @@ import Queue
 import heapq
 # import matplotlib.pyplot as plt
 import os
+from scipy.constants.constants import alpha
 os.environ['TF_CPP_MIN_LOG_LEVEL'] = '3'
 # sys.path.append(os.path.abspath("/home/giuseppe/))
 
@@ -16,7 +17,7 @@ os.environ['TF_CPP_MIN_LOG_LEVEL'] = '3'
 ##      Every time we get a page hit, mark the page and also move it to the MRU position
 ## Page faults:
 ##      Evict an unmark page with the probability proportional to its position in the LRU list.
-class LaCReME_v2(page_replacement_algorithm):
+class LOMP(page_replacement_algorithm):
 
     def __init__(self, N):
         self.N = N
@@ -29,23 +30,28 @@ class LaCReME_v2(page_replacement_algorithm):
         self.Hist2 = CacheLinkedList(N)        
         
         ## Config variables
-        self.epsilon = 0.90
+        self.epsilon = 0.05
         self.error_discount_rate = (0.005)**(1.0/N)
+        self.policy_space_size = 4
+        self.Gamma = 0.5
+        self.minWeight = 0.01
         
         ## 
-        self.policy = 0
         self.evictionTime = {}
         self.policyUsed = {}
         self.weightsUsed = {}
+        self.qUsed = {}
         self.freq = {}
         
         ## Accounting variables
         self.time = 0
-        self.W = np.array([.5,.5], dtype=np.float32)
+        self.unif = self.Gamma  * np.ones(self.policy_space_size, dtype=np.float64) / self.policy_space_size
+        
+        self.W = np.ones(self.policy_space_size, dtype=np.float64) / self.policy_space_size
+        
         
         self.X = np.array([],dtype=np.int32)
-        self.Y1 = np.array([])
-        self.Y2 = np.array([])
+        self.Y = np.array([])
         
         ###
         self.q = Queue.Queue()
@@ -60,10 +66,31 @@ class LaCReME_v2(page_replacement_algorithm):
 #         print(np.min(self.X), np.max(self.X))
         ax = plt.subplot(2,1,1)
         ax.set_xlim(np.min(self.X), np.max(self.X))
-        l1, = plt.plot(self.X,self.Y1, 'b-', label='W_lru')
-        l2, = plt.plot(self.X,self.Y2, 'r-', label='W_lfu')
+        lbl = []
+        for i in range(0, self.policy_space_size) :
+            l, = plt.plot(self.X,self.Y[:,i], label='W_%d' % i)
+            lbl.append(l)
+        
         l3, = plt.plot(self.X, self.NewPages, 'g-', label='New Pages', alpha=0.6)
-        return [l1,l2,l3]
+        lbl.append(l3)
+        
+        return lbl
+
+    ############################################
+    ## Choose a page based on the q distribution
+    ############################################
+    def chooseRandom(self, w):
+        tmp = 1.0*w / np.sum(w,dtype=np.float64)
+        cdf = np.cumsum(tmp, dtype=np.float64)
+        r = np.random.rand()
+        
+        for policy,pr in enumerate(cdf) :
+            if r < pr :
+                return policy
+        
+#         print np.sum(w), w / np.sum(w), cdf
+        
+        return len(w)-1
     
     ##############################################################
     ## There was a page hit to 'page'. Update the data structures
@@ -98,49 +125,22 @@ class LaCReME_v2(page_replacement_algorithm):
     ## Get LFU or LFU page
     ######################    
     def selectEvictPage(self, policy):
-        r = self.CacheRecency.getFront()
-        f = self.getHeapMin()
-        
-        pageToEvit,policyUsed = None, None
-        if r == f :
-            pageToEvit,policyUsed = r,-1
-        elif policy == 0:
-            pageToEvit,policyUsed = r,0
-        elif policy == 1:
-            pageToEvit,policyUsed = f,1
-            
-        assert pageToEvit in self.CacheRecency
-        
-        return pageToEvit,policyUsed
+        if np.random.rand() < 1.0 * policy / (self.policy_space_size-1) :
+            return self.CacheRecency.getFront()
+        else:
+            return self.getHeapMin()
     
     def evictPage(self, pg):
         assert pg in self.CacheRecency
         self.CacheRecency.delete(pg)
         
-    
-    ############################################
-    ## Choose a page based on the q distribution
-    ############################################
-    def chooseRandom(self):
-        r = np.random.rand()
-        if r < self.W[0] :
-            return 0
-        return 1
-    
-    def addToHistory(self, poly, cacheevict):
+    def addToHistory(self, cacheevict):
         histevict = None
-        if (poly == 0) or (poly==-1 and np.random.rand() <0.5):
-            if self.Hist1.size() == self.N :
-                histevict = self.Hist1.getFront()
-                assert histevict in self.Hist1
-                self.Hist1.delete(histevict)
-            self.Hist1.add(cacheevict)
-        else:
-            if self.Hist2.size() == self.N :
-                histevict = self.Hist2.getFront()
-                assert histevict in self.Hist2
-                self.Hist2.delete(histevict)
-            self.Hist2.add(cacheevict)
+        if self.Hist1.size() == self.N :
+            histevict = self.Hist1.getFront()
+            assert histevict in self.Hist1
+            self.Hist1.delete(histevict)
+        self.Hist1.add(cacheevict)
             
         if histevict is not None :
             del self.evictionTime[histevict]
@@ -172,9 +172,12 @@ class LaCReME_v2(page_replacement_algorithm):
         #####################
         ## Visualization data
         #####################
+        
+        if self.time == 1 :
+            self.Y = np.append(self.Y, self.W)
+        else:
+            self.Y = np.vstack((self.Y, self.W))
         self.X = np.append(self.X, self.time)
-        self.Y1 = np.append(self.Y1, self.W[0])
-        self.Y2 = np.append(self.Y2, self.W[1])
         notInHistory = 0
         
         ##########################
@@ -188,28 +191,33 @@ class LaCReME_v2(page_replacement_algorithm):
             #####################################################
             ## Learning step: If there is a page fault in history
             #####################################################
-            pageevict = None
-            
-            reward = np.array([0,0], dtype=np.float32)
             if page in self.Hist1:
-                pageevict = page
                 self.Hist1.delete(page)
-                reward[1] = self.error_discount_rate ** (self.time - self.evictionTime[pageevict])
-                reward_hat = reward 
-            elif page in self.Hist2:
-                pageevict = page
-                self.Hist2.delete(page)
-                reward[0] = self.error_discount_rate ** (self.time - self.evictionTime[pageevict])
-                reward_hat = reward 
+                
+                et = self.evictionTime[page]
+                pu = self.policyUsed[page]
+                qu = self.qUsed[page]
+                
+                cost = np.zeros(self.policy_space_size, dtype=np.float64) 
+                cost[pu] = self.error_discount_rate ** (self.time - et)
+                cost_hat = cost / qu
+                
+                #################
+                ## Update Weights
+                #################
+                
+                
+                self.W = self.W * (1.0 - self.epsilon * cost_hat)
+                cost[pu] = np.min(cost[pu], self.minWeight)
+                self.W = self.W / np.sum(self.W)
+                
+                
+#                 print np.sum(self.W)
+                assert np.sum(self.W) > 0.00000001, 'ERROR: W is zero'
+                
             else:
                 notInHistory = 1
             
-            #################
-            ## Update Weights
-            #################
-            if pageevict is not None and self.policyUsed[pageevict] != -1 :
-                self.W = self.W * np.exp(self.epsilon * reward_hat / 2)
-                self.W = self.W / np.sum(self.W)
             
             ####################
             ## Remove from Cache
@@ -219,18 +227,22 @@ class LaCReME_v2(page_replacement_algorithm):
                 ################
                 ## Choose Policy
                 ################
-                act = self.chooseRandom()
-
-                cacheevict,poly = self.selectEvictPage(act)
                 
-                self.policyUsed[cacheevict] = poly
+                q = (1.0-self.Gamma) * self.W +  self.unif 
+                
+                act = self.chooseRandom(q)
+                
+                cacheevict = self.selectEvictPage(act)
+                
+                self.policyUsed[cacheevict] = act
                 self.evictionTime[cacheevict] = self.time
-                        
+                self.qUsed[cacheevict] = q
+                
                 ###################
                 ## Remove from Cache and Add to history
                 ###################
                 self.evictPage(cacheevict)
-                self.addToHistory(poly, cacheevict)
+                self.addToHistory(cacheevict)
                 
             self.addToCache(page)
             
@@ -241,7 +253,7 @@ class LaCReME_v2(page_replacement_algorithm):
         if self.q.qsize() > self.N:
             self.sum -= self.q.get()
         
-        self.NewPages.append(1.0*self.sum / (self.N))
+        self.NewPages.append(1.0*self.sum / self.N)
         
         return page_fault
 
