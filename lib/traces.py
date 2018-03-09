@@ -55,35 +55,37 @@ class Trace:
         if file_name.endswith('.blkparse') :
             self.blocksize = 512
             startTime = None
-            timeLimit = 2e9
+            timeLimit = 2e12
             for line in f :
                 
                 try :
                     row = line.split(' ')
                     ctime = int(row[0])
-                    if startTime is None :
-                        startTime = ctime
-                    elif ctime - startTime >= timeLimit:
-                        break
+#                     if startTime is None :
+#                         startTime = ctime
+#                     elif ctime - startTime >= timeLimit:
+#                         print 'time limit'
+#                         break
                          
                     offsets.append(int(row[3]))
                     sizes.append(int(row[4])*512)
                 except :
                     exc_type, exc_value, exc_traceback = sys.exc_info()
                     print(exc_type, exc_value, exc_traceback)
-        if file_name.endswith('.csv') :
+        elif file_name.endswith('.csv') :
             self.blocksize = 512
             startTime = None
-            timeLimit = 2e9
+            timeLimit = 2e12
             print 'debug: resing .csv file'
             for line in f :
                 try :
                     row = line.split(',')
-#                     ctime = int(row[0])
+                    ctime = int(row[0])
 #                     if startTime is None :
 #                         startTime = ctime
 #                     elif ctime - startTime >= timeLimit:
 #                         break
+
                          
                     offsets.append(int(row[4]))
                     sizes.append(int(row[5]))

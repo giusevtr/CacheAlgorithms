@@ -1,8 +1,8 @@
 #!/bin/bash
 
 CACHE_SIZE=50
-FILES=(ws_25.txt ws_50.txt ws_75.txt ps)
-ALGORITHMS=(LRU LFU ARC LaCReME_v2 OLCR_RAND)
+FILES=(msr-cambridge1-sample.csv)
+ALGORITHMS=(LRU LFU ARC)
 BLOCKSIZE=1
 
 for ((i=0;i<${#FILES[@]};++i)); do
