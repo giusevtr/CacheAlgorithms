@@ -2,7 +2,7 @@ from lib.disk_struct import Disk
 from algorithms.page_replacement_algorithm import  page_replacement_algorithm
 from lib.priorityqueue import priorityqueue
 from lib.CacheLinkedList import CacheLinkedList
-
+import tensorflow as tf
 import numpy as np
 import Queue
 import heapq
@@ -31,26 +31,62 @@ class LaCReME_v2(page_replacement_algorithm):
         ## Config variables
         self.epsilon = 0.90
         self.error_discount_rate = (0.005)**(1.0/N)
-        
-        ## 
+                ## 
         self.policy = 0
         self.evictionTime = {}
         self.policyUsed = {}
-        self.weightsUsed = {}
+        self.pUsed = {}
+        self.param = {}
+        
         
         ## Accounting variables
         self.time = 0
-        self.W = np.array([.5,.5], dtype=np.float32)
-        
-        self.X = np.array([],dtype=np.int32)
-        self.Y1 = np.array([])
-        self.Y2 = np.array([])
         
         ###
         self.q = Queue.Queue()
         self.sum = 0
         self.NewPages = []
         
+        
+        self.c_hits = 0
+        self.h_miss = 0
+        
+        self.learning = True
+        
+        
+        self.X = tf.placeholder(dtype=tf.int32, shape=[None,2])
+        self.P = tf.placeholder(dtype=tf.float32, shape=[None,1])
+        
+        self.R = tf.placeholder(dtype=tf.float32, shape=[None])
+        self.F = tf.placeholder(dtype=tf.float32, shape=[None])
+        
+        self.W = tf.Variable(tf.random_uniform([2*self.N]))
+        
+#         self.predict = tf.sigmoid(tf.matmul(self.X, self.W))
+#         self.predict = tf.sigmoid(tf.slice(self.W, self.X[0,0],[1]) + tf.slice(self.W, self.X[0,1]+self.N,[1]))
+        idx1 = tf.slice(self.X,[0,0],[-1,1])
+        idx2 = tf.slice(self.X,[0,1],[-1,1])
+        
+        self.w1 = tf.slice(self.W, idx1[0] ,[1])
+        self.w2 = tf.slice(self.W, idx2[0] ,[1])
+        
+        self.predict = tf.sigmoid(self.w1 + self.w2)
+        
+        self.cost = tf.reduce_sum(self.R * tf.log(self.predict) + self.F * tf.log(1 - self.predict))
+        learning_rate = 0.1
+        self.optimizer = tf.train.AdamOptimizer(learning_rate=learning_rate).minimize(self.cost)
+        
+        ##################################
+        self.X_holder = []
+        self.P_holder = []
+        self.R_holder = []
+        self.F_holder = []
+        self.train_batch_size = 5*self.N
+        
+        init = tf.global_variables_initializer()
+        
+        self.sess = tf.Session()
+        self.sess.run(init)    
         
     def get_N(self) :
         return self.N
@@ -96,21 +132,13 @@ class LaCReME_v2(page_replacement_algorithm):
     ######################
     ## Get LFU or LFU page
     ######################    
-    def selectEvictPage(self, policy):
-        r = self.CacheRecency.getFront()
-        f = self.getHeapMin()
-        
-        pageToEvit,policyUsed = None, None
-        if r == f :
-            pageToEvit,policyUsed = r,-1
-        elif policy == 0:
-            pageToEvit,policyUsed = r,0
-        elif policy == 1:
-            pageToEvit,policyUsed = f,1
-            
-        assert pageToEvit in self.CacheRecency
-        
-        return pageToEvit,policyUsed
+    def selectEvictPage(self, P):
+        assert P >= 0 and P <= 1
+        if np.random.rand() < P :
+            return self.CacheRecency.getFront(), 0 
+        else:
+            return self.getHeapMin(), 1
+    
     
     def evictPage(self, pg):
         assert pg in self.CacheRecency

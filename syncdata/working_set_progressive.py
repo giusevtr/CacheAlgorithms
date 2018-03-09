@@ -3,7 +3,7 @@ from audioop import add
 
 CACHE_SIZE = 50
 PHASE_SIZE = 1000
-NUM_PHASES = 20
+NUM_PHASES = 10
 UNIVERSE_SIZE = 500
 WORKING_SET_SIZE = 100
 WS_CHANGE_STEP = 3
@@ -14,8 +14,6 @@ if __name__ == "__main__" :
     
     other = np.arange(0,UNIVERSE_SIZE, dtype=np.int32)
     workingSet = np.array([], dtype=np.int32)
-    
-    
     
     
     eps = 0.2

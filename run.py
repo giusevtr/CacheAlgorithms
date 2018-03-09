@@ -77,7 +77,7 @@ if __name__ == "__main__" :
     else :
         cache_size = int(cache_size_per)
     
-    colors = ['y','b','r','k','g']
+    colors = ['y','b','r','k','g', 'c', 'm']
     color_id = 0
     labels = []
     max_column_height = 0

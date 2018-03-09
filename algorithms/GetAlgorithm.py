@@ -28,6 +28,8 @@ from algorithms.LaCReME_LFU_ARC import LaCReME_LFU_ARC
 from algorithms.LaCReME_T1T2 import LaCReME_T1T2
 from algorithms.LaCReME_v2 import LaCReME_v2
 from algorithms.LOMP import LOMP
+from algorithms.OLCR import OLCR
+from algorithms.OLCR_RAND import OLCR_RAND
 
 
 
@@ -91,6 +93,10 @@ def GetAlgorithm(cache_size,name):
         return LOMP(cache_size)
     elif lower_name == 'bandit_with_arc' :
         return BANDIT_WITH_ARC(cache_size)   
+    elif lower_name == 'olcr' :
+        return OLCR(cache_size)   
+    elif lower_name == 'olcr_rand' :
+        return OLCR_RAND(cache_size)   
     
     return None       
 

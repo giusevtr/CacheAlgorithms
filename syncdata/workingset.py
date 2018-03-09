@@ -2,11 +2,11 @@ import numpy as np
 from audioop import add
 
 CACHE_SIZE = 50
-PHASE_SIZE = 500
-NUM_PHASES = 5
+PHASE_SIZE = 1000
+NUM_PHASES = 15
 UNIVERSE_SIZE = 500
 WORKING_SET_SIZE = 100
-WS_DELTA = 0.5
+WS_DELTA = 0.75
 
 if __name__ == "__main__" :
     current_group = None
