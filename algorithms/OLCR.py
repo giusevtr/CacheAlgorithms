@@ -85,7 +85,7 @@ class OLCR(page_replacement_algorithm):
         self.w11 = tf.slice(self.W, [self.X, 0],[1,1])
         
         self.w11 = tf.gather(self.W, self.idx1)
-        self.w22 = tf.gather(self.W, self.idx2+self.N)
+        self.w22 = tf.gather(self.W, self.idx2)
         
         
         self.w22 = tf.slice(self.W, [idx2[0,0]+self.N,1],[1,1])

@@ -11,7 +11,7 @@ import matplotlib.pyplot as plt
 ##
 
 WINDOW_SIZE = 2
-ANNOTATION_HEIGHT = 0.4
+ANNOTATION_HEIGHT = 0.3
 
 def getLowLim(data, i):
     n = data.shape[1] # columns
@@ -147,18 +147,22 @@ if __name__ == "__main__" :
     ax.set_xlim(0,cols)
     for i in range(0,rows):        
         upper = data[i,:] / (cache_size*WINDOW_SIZE)
-        lbl = "%s, %%%.2f" % (algorithm[i], hit_rate[i])
+#         lbl = "%s, %%%.2f" % (algorithm[i], hit_rate[i])
+        lbl = "%s" % (algorithm[i])
+        
         l, = plt.plot(T,upper,c=colors[i],label=lbl,alpha=1,linewidth=(rows-i)*2)
         labels.append(l)
 
-#     hit_rate_text = 'algorithm:  hit-rate\n'
-#     for i in range(0, rows) :
-#         hit_rate_text += '%s:  %f\n' % (algorithm[i], round(hit_rate[i],2))
-#     ax.annotate(hit_rate_text,(-0.05,ANNOTATION_HEIGHT),textcoords='axes fraction',alpha=1, size=14)
+    hit_rate_text = 'algorithm:  hit-rate\n'
+    for i in range(0, rows) :
+        hit_rate_text += '%s:  %f\n' % (algorithm[i], round(hit_rate[i],2))
+    ax.annotate(hit_rate_text,(0.05,ANNOTATION_HEIGHT),textcoords='axes fraction',alpha=1, size=14)
     
     plt.xlabel('Request Window Number')
     plt.ylabel('Hit Rate')
-    plt.legend(handles=labels,fancybox=True, framealpha=0.5,bbox_to_anchor=(1.2, 1))
+#     plt.legend(handles=labels,fancybox=True, framealpha=0.5,bbox_to_anchor=(1.2, 1))
+    plt.legend(handles=labels,fancybox=True, framealpha=0.5)
+    
 
     
     outfilename =OUTPUT_FOLDER+experiment_name+'_'+str(cache_size)+'.jpeg' 
