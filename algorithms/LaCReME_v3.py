@@ -16,7 +16,7 @@ os.environ['TF_CPP_MIN_LOG_LEVEL'] = '3'
 ##      Every time we get a page hit, mark the page and also move it to the MRU position
 ## Page faults:
 ##      Evict an unmark page with the probability proportional to its position in the LRU list.
-class LaCReME_v2(page_replacement_algorithm):
+class LaCReME_v3(page_replacement_algorithm):
 
     def __init__(self, N):
         self.N = N
@@ -31,12 +31,14 @@ class LaCReME_v2(page_replacement_algorithm):
         ## Config variables
         self.epsilon = 0.90
         self.error_discount_rate = (0.005)**(1.0/N)
+        self.Gamma = 0.05
         
         ## 
         self.policy = 0
         self.evictionTime = {}
         self.policyUsed = {}
         self.weightsUsed = {}
+        self.qUsed = {}
         
         ## Accounting variables
         self.time = 0
@@ -135,9 +137,9 @@ class LaCReME_v2(page_replacement_algorithm):
     ############################################
     ## Choose a page based on the q distribution
     ############################################
-    def chooseRandom(self):
+    def chooseRandom(self, p):
         r = np.random.rand()
-        if r < self.W[0] :
+        if r < p:
             return 0
         return 1
     
@@ -160,7 +162,8 @@ class LaCReME_v2(page_replacement_algorithm):
             del self.evictionTime[histevict]
             del self.policyUsed[histevict]
             del self.freq[histevict]
-    
+            del self.qUsed[histevict]
+            
     def setTime(self, key, t):
         if key not in self.TR:
             self.TR[key] = 0
@@ -170,7 +173,6 @@ class LaCReME_v2(page_replacement_algorithm):
     ####REQUEST#############################################################################################################################
     ########################################################################################################################################
     def request(self,page) :
-        starttime = time.time()
         page_fault = False
         self.time = self.time + 1
 #         if self.time % self.learning_phase == 0 :
@@ -181,7 +183,6 @@ class LaCReME_v2(page_replacement_algorithm):
         ## Clean up
         ## In case PQ get too large
         ##########################
-        st = time.time()
         if len(self.PQ) > 2*self.N:
             newpq = []
             for pg in self.CacheRecency:
@@ -189,54 +190,45 @@ class LaCReME_v2(page_replacement_algorithm):
             heapq.heapify(newpq)
             self.PQ = newpq
             del newpq
-        self.setTime('cleanup',time.time()-st)
         
         
-        st = time.time()
         #####################
         ## Visualization data
         #####################
 #         self.X = np.append(self.X, self.time)
 #         self.Y1 = np.append(self.Y1, self.W[0])
 #         self.Y2 = np.append(self.Y2, self.W[1])
-        self.setTime('visualization',time.time()-st)
         
         ##########################
         ## Process page request 
         ##########################
         if page in self.CacheRecency:
-            st = time.time()
             page_fault = False
             self.pageHitUpdate(page)
-            self.setTime('pageHitUpdate',time.time()-st)
         else :
             
             #####################################################
             ## Learning step: If there is a page fault in history
             #####################################################
             pageevict = None
-            st = time.time()
 
             reward = np.array([0,0], dtype=np.float32)
             if page in self.Hist1:
                 pageevict = page
                 self.Hist1.delete(page)
-                reward[1] = self.error_discount_rate ** (self.time - self.evictionTime[pageevict])
-                reward_hat = reward 
+                reward[1] = self.error_discount_rate ** (self.time - self.evictionTime[pageevict]) / self.qUsed[page][1]
             elif page in self.Hist2:
                 pageevict = page
                 self.Hist2.delete(page)
-                reward[0] = self.error_discount_rate ** (self.time - self.evictionTime[pageevict])
-                reward_hat = reward 
+                reward[0] = self.error_discount_rate ** (self.time - self.evictionTime[pageevict]) / self.qUsed[page][0]
             
             #################
             ## Update Weights
             #################
             if pageevict is not None and self.policyUsed[pageevict] != -1 :
-                self.W = self.W * np.exp(self.epsilon * reward_hat / 2)
+                self.W = self.W * np.exp(self.Gamma * reward / 2)
                 self.W = self.W / np.sum(self.W)
             
-            self.setTime('Hit in history and update weights',time.time()-st)
             ####################
             ## Remove from Cache
             ####################
@@ -245,27 +237,22 @@ class LaCReME_v2(page_replacement_algorithm):
                 ################
                 ## Choose Policy
                 ################
-                st = time.time()
-                act = self.chooseRandom()
-                self.setTime('chooseRandom',time.time()-st)
+                q = (1-self.Gamma) * self.W + self.Gamma*np.ones(2)/2.0
+                q = q / np.sum(q)
+                act = self.chooseRandom(q[0])
                 
-                st = time.time()
                 cacheevict,poly = self.selectEvictPage(act)
                 self.policyUsed[cacheevict] = poly
                 self.evictionTime[cacheevict] = self.time
-                self.setTime('selectEvictPage',time.time()-st)
+                self.qUsed[cacheevict] = q
                 
                 ###################
                 ## Remove from Cache and Add to history
                 ###################
-                st = time.time()
                 self.evictPage(cacheevict)
                 self.addToHistory(poly, cacheevict)
-                self.setTime('selectEvictPage',time.time()-st)
                 
-            st = time.time()
             self.addToCache(page)
-            self.setTime('addToCache',time.time()-st)
             
             page_fault = True
         
@@ -277,7 +264,6 @@ class LaCReME_v2(page_replacement_algorithm):
 #         self.NewPages.append(1.0*self.sum / (self.N))
 #         self.setTime('New pages',time.time()-st)
         
-        self.setTime('total', time.time() - starttime)
         
         return page_fault
 

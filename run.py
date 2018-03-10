@@ -10,7 +10,6 @@ import matplotlib.pyplot as plt
 ## python cache_size experiment_name algorithms
 ##
 
-WINDOW_SIZE = 10
 ANNOTATION_HEIGHT =0
 
 def getLowLim(data, i):
@@ -45,22 +44,18 @@ if __name__ == "__main__" :
         print('Must provide more than 3 arguments')
         sys.exit(0)
 
-
     assert float(sys.argv[1]) > 0,  'cache_size must be positive'
-    
-    
     
     cache_size_per = float(sys.argv[1])
     experiment_name = sys.argv[2]
     blocksize = int(sys.argv[3])
     algorithm = sys.argv[4:]
     
+    visualizeInternalStatePlot = experiment_name.endswith('.txt')
     
     ###############################################################
     ## Plot title
     ###############################################################
-    subtitle = '\nfile name: %s\n' % experiment_name
-    plt.title(subtitle)
     
     ###############################################################
     ## Read data
@@ -77,6 +72,9 @@ if __name__ == "__main__" :
     else :
         cache_size = int(cache_size_per)
     
+    averaging_window_size = int(0.05*len(pages))
+    print 'averaging_window_size = ', averaging_window_size
+    
     colors = ['y','b','r','k','g', 'c', 'm']
     color_id = 0
     labels = []
@@ -92,31 +90,34 @@ if __name__ == "__main__" :
     ########################
     ## Plot internal state
     ########################
-    ax = plt.subplot(1,1,1)
-    ax.set_title('internal state')
+    
+    if visualizeInternalStatePlot :
+        ax = plt.subplot(2,1,1)
+    else :
+        ax = plt.subplot(1,1,1)
+        
+    ax.set_title('%s:%d\n' % (experiment_name,cache_size))
     xlim1,xlim2 = 0,0
     for v in trace_obj.vertical_lines :
         plt.axvline(x=v,color='g',alpha=0.75)
     
     i = 0
     for name in algorithm :
-        algo = GetAlgorithm(cache_size, name)
-        win = cache_size*WINDOW_SIZE
+        algo = GetAlgorithm(cache_size, name, visualization = visualizeInternalStatePlot)
         
         start = time.time()
-        hits, part_hit_rate, hit_sum = algo.test_algorithm(pages, partition_size=cache_size*WINDOW_SIZE)
+        hits, part_hit_rate, hit_sum = algo.test_algorithm(pages, partition_size=averaging_window_size)
         end = time.time()
         
-        lbl = [] # algo.visualize(plt)
+        if visualizeInternalStatePlot:
+            lbl = algo.visualize(plt)
+        else :
+            lbl = []
         i += 1
         
         if lbl is not None :
             labels = labels + lbl
-#         temp = 1751
-#         plt.axvline(x=temp,color='b')
-#         plt.axvline(x=10000+temp,color='r')
-#         data.append(part_hit_rate)
-        temp = np.append(np.zeros(win), hit_sum[:-win])
+        temp = np.append(np.zeros(averaging_window_size), hit_sum[:-averaging_window_size])
         data.append(hit_sum-temp)
         hit_rate.append(round(100.0 * hits / num_pages,2))
         print("{:<20} {:<20} {:<20} {:<20} {:<20}  {:<20}".format(name, round(100.0 * hits / num_pages,2), hits, num_pages, trace_obj.unique_pages(), round(end-start,3)))
@@ -133,7 +134,11 @@ if __name__ == "__main__" :
     #####################
     ## Plot performance #
     #####################
-    ax = plt.subplot(1,1,1)
+    if visualizeInternalStatePlot:
+        ax = plt.subplot(2,1,2)
+    else :
+        ax = plt.subplot(1,1,1)
+        
     #ax.set_title('file name: %s\n' % experiment_name)
     rows = data.shape[0]
     cols = data.shape[1]
@@ -147,26 +152,25 @@ if __name__ == "__main__" :
     ax.set_ylim(-.05,1.05)
     ax.set_xlim(0,cols)
     for i in range(0,rows):        
-        upper = data[i,:] / (cache_size*WINDOW_SIZE)
+        upper = data[i,:] / (averaging_window_size)
 #         lbl = "%s, %%%.2f" % (algorithm[i], hit_rate[i])
         lbl = "%s" % (algorithm[i])
         
         l, = plt.plot(T,upper,c=colors[i],label=lbl,alpha=0.9,linewidth=(rows-i)*1.5)
         labels.append(l)
 
-    hit_rate_text = 'algorithm:  hit-rate\n'
+    hit_rate_text = ''
     for i in range(0, rows) :
         hit_rate_text += '%s:  %.2f\n' % (algorithm[i], hit_rate[i])
     ax.annotate(hit_rate_text,(0.05,ANNOTATION_HEIGHT),textcoords='axes fraction',alpha=1, size=16, weight='bold')
     
-    plt.xlabel('Request Window Number')
+    plt.xlabel('Request')
     plt.ylabel('Hit Rate')
 #     plt.legend(handles=labels,fancybox=True, framealpha=0.5,bbox_to_anchor=(1.2, 1))
     plt.legend(handles=labels,fancybox=True, framealpha=0.5)
     
-
     
-    outfilename =OUTPUT_FOLDER+experiment_name+'_'+str(cache_size)+'.jpeg' 
+    outfilename = OUTPUT_FOLDER+experiment_name+'_'+str(cache_size)+'.jpeg' 
     
     print(outfilename)
     plt.savefig(outfilename)

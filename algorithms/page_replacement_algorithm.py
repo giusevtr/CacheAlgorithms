@@ -3,6 +3,8 @@ import sys
 
 
 class page_replacement_algorithm :
+    def __init__(self, N, visualization = False):
+        pass
     def request(self,page) :
         pass
     def page_color(self, p ) :

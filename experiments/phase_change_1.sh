@@ -2,7 +2,7 @@
 
 CACHE_SIZE=50
 FILES=(phase_change_1.txt)
-ALGORITHMS=(LRU LFU ARC LaCReME_v2)
+ALGORITHMS=(LRU LFU ARC LaCReME LaCReME_v3)
 BLOCKSIZE=1
 
 for ((i=0;i<${#FILES[@]};++i)); do
