@@ -10,7 +10,7 @@ import matplotlib.pyplot as plt
 ## python cache_size experiment_name algorithms
 ##
 
-WINDOW_SIZE = 2
+WINDOW_SIZE = 10
 ANNOTATION_HEIGHT = 0.3
 
 def getLowLim(data, i):
