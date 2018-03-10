@@ -21,8 +21,9 @@ class ARC(page_replacement_algorithm):
         self.Y = []
         
     def visualize(self, plt):
-        l1, = plt.plot(self.X,self.Y,'r-', label='ARC p-value')
-        return [l1]
+#         l1, = plt.plot(self.X,self.Y,'r-', label='ARC p-value')
+#         return [l1]
+        return []
     
     def get_N(self) :
         return self.N
@@ -30,8 +31,8 @@ class ARC(page_replacement_algorithm):
     def request(self,page) :
         page_fault = False
         self.time += 1
-        self.X.append(self.time)
-        self.Y.append(1.0*self.P / self.N)
+#         self.X.append(self.time)
+#         self.Y.append(1.0*self.P / self.N)
         t1 = self.T1.size()
         t2 = self.T2.size()
         b1 = self.B1.size()

@@ -11,7 +11,7 @@ import matplotlib.pyplot as plt
 ##
 
 WINDOW_SIZE = 10
-ANNOTATION_HEIGHT = 0.3
+ANNOTATION_HEIGHT =0
 
 def getLowLim(data, i):
     n = data.shape[1] # columns
@@ -92,7 +92,7 @@ if __name__ == "__main__" :
     ########################
     ## Plot internal state
     ########################
-    ax = plt.subplot(2,1,1)
+    ax = plt.subplot(1,1,1)
     ax.set_title('internal state')
     xlim1,xlim2 = 0,0
     for v in trace_obj.vertical_lines :
@@ -107,7 +107,7 @@ if __name__ == "__main__" :
         hits, part_hit_rate, hit_sum = algo.test_algorithm(pages, partition_size=cache_size*WINDOW_SIZE)
         end = time.time()
         
-        lbl = algo.visualize(plt)
+        lbl = [] # algo.visualize(plt)
         i += 1
         
         if lbl is not None :
@@ -133,7 +133,7 @@ if __name__ == "__main__" :
     #####################
     ## Plot performance #
     #####################
-    ax = plt.subplot(2,1,2)
+    ax = plt.subplot(1,1,1)
     #ax.set_title('file name: %s\n' % experiment_name)
     rows = data.shape[0]
     cols = data.shape[1]
@@ -156,8 +156,8 @@ if __name__ == "__main__" :
 
     hit_rate_text = 'algorithm:  hit-rate\n'
     for i in range(0, rows) :
-        hit_rate_text += '%s:  %f\n' % (algorithm[i], round(hit_rate[i],2))
-    ax.annotate(hit_rate_text,(0.05,ANNOTATION_HEIGHT),textcoords='axes fraction',alpha=1, size=14)
+        hit_rate_text += '%s:  %.2f\n' % (algorithm[i], hit_rate[i])
+    ax.annotate(hit_rate_text,(0.05,ANNOTATION_HEIGHT),textcoords='axes fraction',alpha=1, size=16, weight='bold')
     
     plt.xlabel('Request Window Number')
     plt.ylabel('Hit Rate')
