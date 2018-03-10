@@ -107,7 +107,7 @@ if __name__ == "__main__" :
         hits, part_hit_rate, hit_sum = algo.test_algorithm(pages, partition_size=cache_size*WINDOW_SIZE)
         end = time.time()
         
-        lbl = algo.visualize(plt, col = colors[i])
+        lbl = algo.visualize(plt)
         i += 1
         
         if lbl is not None :

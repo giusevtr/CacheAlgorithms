@@ -21,7 +21,7 @@ class ARC(page_replacement_algorithm):
         self.Y = []
         
     def visualize(self, plt):
-        l1, = plt.plot(self.X,self.Y,'k-', label='ARC p-value')
+        l1, = plt.plot(self.X,self.Y,'r-', label='ARC p-value')
         return [l1]
     
     def get_N(self) :
