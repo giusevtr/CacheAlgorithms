@@ -29,7 +29,6 @@ class OLCR(page_replacement_algorithm):
         self.Hist2 = CacheLinkedList(N)        
         
         ## Config variables
-        self.epsilon = 0.90
         self.error_discount_rate = (0.005)**(1.0/N)
         
         ## 
@@ -38,7 +37,6 @@ class OLCR(page_replacement_algorithm):
         self.policyUsed = {}
         self.pUsed = {}
         self.param = {}
-        
         
         ## Accounting variables
         self.time = 0
@@ -102,8 +100,8 @@ class OLCR(page_replacement_algorithm):
         self.logit1 = tf.contrib.layers.flatten(temp) # 1 x hidden_units 
         
         
-        self.logit2 = tf.sigmoid(tf.matmul(self.logit1,self.W_hidden) + self.b_hidden)
-        self.logit3 = tf.sigmoid(tf.matmul(self.logit2,self.W_hidden2) + self.b_hidden2)
+        self.logit2 = tf.sigmoid(tf.matmul(self.logit1,self.W_hidden))
+        self.logit3 = tf.sigmoid(tf.matmul(self.logit2,self.W_hidden2))
         
         
 #         self.predict =  tf.nn.softmax(self.logit2)
@@ -124,7 +122,7 @@ class OLCR(page_replacement_algorithm):
         self.P_holder = []
         self.R_holder = []
         self.F_holder = []
-        self.train_batch_size = self.N/4
+        self.train_batch_size = 4*self.N
         
         init = tf.global_variables_initializer()
         
@@ -234,17 +232,17 @@ class OLCR(page_replacement_algorithm):
 #             t2 = tf.one_hot(X_1[:,1], depth=self.N)
 #             X_2 = tf.concat([t1,t2], 1)
             
-#             cost_bef = self.sess.run(self.cost,  feed_dict={   self.X:X_1, 
-#                                                                 self.C_r:R,
-#                                                                 self.C_f:F})
+            cost_bef = self.sess.run(self.cost,  feed_dict={   self.X:X_1, 
+                                                                self.C_r:R,
+                                                                self.C_f:F})
             
             self.sess.run(self.optimizer, feed_dict={   self.X:X_1, 
                                                         self.C_r:R,
                                                         self.C_f:F})
             
-#             cost_after = self.sess.run(self.cost,  feed_dict={   self.X:X_1, 
-#                                                                 self.C_r:R,
-#                                                                 self.C_f:F})
+            cost_after = self.sess.run(self.cost,  feed_dict={   self.X:X_1, 
+                                                                self.C_r:R,
+                                                                self.C_f:F})
             
             
 #             print 'bef:%f - after:%f = %f' % (cost_bef, cost_after,cost_bef-cost_after)
