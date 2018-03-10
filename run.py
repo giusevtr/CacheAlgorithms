@@ -98,7 +98,7 @@ if __name__ == "__main__" :
     for v in trace_obj.vertical_lines :
         plt.axvline(x=v,color='g',alpha=0.75)
     
-
+    i = 0
     for name in algorithm :
         algo = GetAlgorithm(cache_size, name)
         win = cache_size*WINDOW_SIZE
@@ -107,7 +107,8 @@ if __name__ == "__main__" :
         hits, part_hit_rate, hit_sum = algo.test_algorithm(pages, partition_size=cache_size*WINDOW_SIZE)
         end = time.time()
         
-        lbl = algo.visualize(plt)
+        lbl = algo.visualize(plt, col = colors[i])
+        i += 1
         
         if lbl is not None :
             labels = labels + lbl
@@ -150,7 +151,7 @@ if __name__ == "__main__" :
 #         lbl = "%s, %%%.2f" % (algorithm[i], hit_rate[i])
         lbl = "%s" % (algorithm[i])
         
-        l, = plt.plot(T,upper,c=colors[i],label=lbl,alpha=1,linewidth=(rows-i)*2)
+        l, = plt.plot(T,upper,c=colors[i],label=lbl,alpha=0.9,linewidth=(rows-i)*1.5)
         labels.append(l)
 
     hit_rate_text = 'algorithm:  hit-rate\n'
