@@ -26,7 +26,7 @@ class OLCR(page_replacement_algorithm):
         self.PQ = []
         
         self.Hist1 = CacheLinkedList(N)        
-#         self.Hist2 = CacheLinkedList(N)        
+        self.Hist2 = CacheLinkedList(N)        
         
         ## Config variables
         self.epsilon = 0.90
@@ -57,13 +57,13 @@ class OLCR(page_replacement_algorithm):
         input_units = 2*self.N
         hidden_units = 3
         hidden_units2 = 2
-        output_units = 1
+        output_units = 2
         
         self.X = tf.placeholder(dtype=tf.int32, shape=[None,2])
         self.P = tf.placeholder(dtype=tf.float32, shape=[None,1])
         
         self.C_r = tf.placeholder(dtype=tf.float32, shape=[None])
-#         self.C_f = tf.placeholder(dtype=tf.float32, shape=[None])
+        self.C_f = tf.placeholder(dtype=tf.float32, shape=[None])
         
         self.W = tf.Variable(tf.random_uniform([input_units, hidden_units]))
         self.b = tf.Variable(tf.ones([hidden_units]))
@@ -72,7 +72,7 @@ class OLCR(page_replacement_algorithm):
         self.b_hidden   = tf.Variable(tf.ones([hidden_units2]))
         
         self.W_hidden2   = tf.Variable(tf.random_uniform([hidden_units2, output_units]))
-        self.b_hidden2   = tf.Variable(tf.ones([output_units]))
+        self.b_hidden2   = tf.Variable(tf.ones([output_units])) 
         
         
 #         self.predict = tf.sigmoid(tf.matmul(self.X, self.W))
@@ -103,15 +103,19 @@ class OLCR(page_replacement_algorithm):
         
         
         self.logit2 = tf.sigmoid(tf.matmul(self.logit1,self.W_hidden) + self.b_hidden)
-        
-        
         self.logit3 = tf.sigmoid(tf.matmul(self.logit2,self.W_hidden2) + self.b_hidden2)
         
         
 #         self.predict =  tf.nn.softmax(self.logit2)
-        self.predict = self.logit3
+        self.predict = tf.nn.softmax(self.logit3)
         
-        self.cost = -tf.reduce_mean(self.C_r * tf.log(1-self.predict) + (1-self.C_r) * tf.log(self.predict))
+#         self.cost_r = -tf.reduce_mean(self.C_r * tf.log(1-self.predict[0,0]) + (1-self.C_r) * tf.log(self.predict[0,0]))
+#         self.cost_f = -tf.reduce_mean(self.C_f * tf.log(1-self.predict[0,1]) + (1-self.C_f) * tf.log(self.predict[0,1]))
+#         self.cost = self.cost_r + self.cost_f
+        
+        self.cost = -tf.reduce_mean(self.C_r * tf.log(1-self.predict[0,0]) + self.C_f * tf.log(1-self.predict[0,1]))
+        
+        
         learning_rate = 0.001
         self.optimizer = tf.train.AdamOptimizer(learning_rate=learning_rate).minimize(self.cost)
         
@@ -188,11 +192,18 @@ class OLCR(page_replacement_algorithm):
     
     def addToHistory(self, poly, cacheevict):
         histevict = None
-        if self.Hist1.size() == self.N :
-            histevict = self.Hist1.getFront()
-            assert histevict in self.Hist1
-            self.Hist1.delete(histevict)
-        self.Hist1.add(cacheevict)
+        if poly == 0:
+            if self.Hist1.size() == self.N :
+                histevict = self.Hist1.getFront()
+                assert histevict in self.Hist1
+                self.Hist1.delete(histevict)
+            self.Hist1.add(cacheevict)
+        elif poly == 1:
+            if self.Hist2.size() == self.N :
+                histevict = self.Hist2.getFront()
+                assert histevict in self.Hist2
+                self.Hist2.delete(histevict)
+            self.Hist2.add(cacheevict)
             
         if histevict is not None :
             del self.evictionTime[histevict]
@@ -217,21 +228,26 @@ class OLCR(page_replacement_algorithm):
             
             X_1 = np.array(self.X_holder)
             R = np.array(self.R_holder)
+            F = np.array(self.F_holder)
+            
 #             t1 = tf.one_hot(X_1[:,0], depth=self.N)
 #             t2 = tf.one_hot(X_1[:,1], depth=self.N)
 #             X_2 = tf.concat([t1,t2], 1)
             
-            cost_bef = self.sess.run(self.cost,  feed_dict={   self.X:X_1, 
-                                                                self.C_r:R})
+#             cost_bef = self.sess.run(self.cost,  feed_dict={   self.X:X_1, 
+#                                                                 self.C_r:R,
+#                                                                 self.C_f:F})
             
             self.sess.run(self.optimizer, feed_dict={   self.X:X_1, 
-                                                        self.C_r:R})
+                                                        self.C_r:R,
+                                                        self.C_f:F})
             
-            cost_after = self.sess.run(self.cost,  feed_dict={   self.X:X_1, 
-                                                                self.C_r:R})
+#             cost_after = self.sess.run(self.cost,  feed_dict={   self.X:X_1, 
+#                                                                 self.C_r:R,
+#                                                                 self.C_f:F})
             
             
-            print 'bef:%f - after:%f = %f' % (cost_bef, cost_after,cost_bef-cost_after)
+#             print 'bef:%f - after:%f = %f' % (cost_bef, cost_after,cost_bef-cost_after)
             
             self.X_holder = []
             self.P_holder = []
@@ -266,7 +282,7 @@ class OLCR(page_replacement_algorithm):
             ## Learning step: If there is a page fault in history
             #####################################################
             
-            if page in self.Hist1 :
+            if page in self.Hist1 or page in self.Hist2:
                 page_outcome = 1
                 
                 X = self.param[page]
@@ -276,11 +292,16 @@ class OLCR(page_replacement_algorithm):
                 ## TODO Consider dividing e by P
                 self.X_holder.append(X)
                 self.P_holder.append(P)
-                self.R_holder.append(e)
                 
-                self.Hist1.delete(page)
-#                     self.R_holder.append(e)
-#                     self.F_holder.append(0)
+                if page in self.Hist1:
+                    self.Hist1.delete(page)
+                    self.R_holder.append(1)
+                    self.F_holder.append(0)
+                else :
+                    self.Hist2.delete(page)
+                    self.R_holder.append(0)
+                    self.F_holder.append(1)
+
             else :
                 page_outcome = 2 
             ####################
@@ -296,8 +317,11 @@ class OLCR(page_replacement_algorithm):
 #                 t2 = tf.one_hot([self.h_miss], depth=self.N)
 #                 X_2 = tf.concat([t1,t2], 1)
                 
-                P = self.sess.run(self.predict, feed_dict={self.X:np.array([[self.c_hits, self.h_miss]])})[0,0]
                 
+                if np.random.rand() < 0.5 :
+                    P = self.sess.run(self.predict, feed_dict={self.X:np.array([[self.c_hits, self.h_miss]])})[0,0]
+                else :
+                    P = np.random.rand()
 #                 print self.sess.run(self.unnormweight,feed_dict={self.X:np.array([[self.c_hits, self.h_miss]])})
 #                 print 'P = ', P
                 
