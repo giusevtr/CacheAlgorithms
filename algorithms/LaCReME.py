@@ -234,6 +234,8 @@ class LaCReME(page_replacement_algorithm):
             if pageevict is not None and self.policyUsed[pageevict] != -1 :
                 self.W = self.W * np.exp(self.epsilon * reward_hat / 2)
                 self.W = self.W / np.sum(self.W)
+                minweight = 0.00001
+                self.W[0], self.W[1] = max(self.W[0] , minweight), max(self.W[1],minweight)
             
             self.setTime('Hit in history and update weights',time.time()-st)
             ####################
