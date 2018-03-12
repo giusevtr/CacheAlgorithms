@@ -232,7 +232,7 @@ class LaCReME(page_replacement_algorithm):
             ## Update Weights
             #################
             if pageevict is not None and self.policyUsed[pageevict] != -1 :
-                self.W = self.W * np.exp(self.epsilon * reward_hat / 2)
+                self.W = self.W * np.exp(self.Gamma * reward_hat)
                 self.W = self.W / np.sum(self.W)
                 minweight = 0.01
                 if self.W[0] < minweight :
