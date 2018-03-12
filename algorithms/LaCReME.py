@@ -66,8 +66,8 @@ class LaCReME(page_replacement_algorithm):
             Y2 = np.array(self.Y2)
             ax = plt.subplot(2,1,1)
             ax.set_xlim(np.min(X), np.max(X))
-            l1, = plt.plot(self.X,Y1, 'y-', label='W_lru')
-            l2, = plt.plot(self.X,Y2, 'b-', label='W_lfu')
+            l1, = plt.plot(self.X,Y1, 'y-', label='W_lru',linewidth=2)
+            l2, = plt.plot(self.X,Y2, 'b-', label='W_lfu',linewidth=1)
             lbl.append(l1)
             lbl.append(l2)
 #         totaltime = 0

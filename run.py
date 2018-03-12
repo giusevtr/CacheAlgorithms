@@ -123,7 +123,7 @@ if __name__ == "__main__" :
         print("{:<20} {:<20} {:<20} {:<20} {:<20}  {:<20}".format(name, round(100.0 * hits / num_pages,2), hits, num_pages, trace_obj.unique_pages(), round(end-start,3)))
 
         sys.stdout.flush()
-    ax.set_ylim(0,1)
+    ax.set_ylim(-0.05,1.05)
 #     ax.autoscale(axis='both')
     plt.xlabel('Time')
     plt.ylabel('Weight')
