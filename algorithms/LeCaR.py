@@ -33,10 +33,7 @@ class LeCaR(page_replacement_algorithm):
         self.learningRate = 0.45
         
         ## 
-        self.policy = 0
         self.evictionTime = {}
-        self.policyUsed = {}
-        self.weightsUsed = {}
         
         ## Accounting variables
         self.time = 0
@@ -47,13 +44,6 @@ class LeCaR(page_replacement_algorithm):
         self.Y1 = []
         self.Y2 = []
         
-        ###
-        self.q = Queue.Queue()
-        self.sum = 0
-        self.NewPages = []
-        
-        
-        self.TR = {}
         
     def get_N(self) :
         return self.N
@@ -70,20 +60,6 @@ class LeCaR(page_replacement_algorithm):
             l2, = plt.plot(self.X,Y2, 'b-', label='W_lfu',linewidth=1)
             lbl.append(l1)
             lbl.append(l2)
-#         totaltime = 0
-#         total2  = 0
-#         for tc in self.TR:
-#             if tc is not 'total':
-#                 totaltime += self.TR[tc]
-#              
-#         for tc in self.TR:
-#             if tc is not 'total':
-#                 print '%s = %% %f' % (tc, 100*self.TR[tc] / totaltime)
-#                 total2 += self.TR[tc]
-#                  
-#         print '%s = %f' % ('total2', total2)
-#         print '%s = %f' % ('total', self.TR['total'])
-#         
         return lbl
     
     ##############################################################
@@ -106,9 +82,6 @@ class LeCaR(page_replacement_algorithm):
         heapq.heappush(self.PQ, (self.freq[page],page))
     
     def getHeapMin(self):
-#         if len(self.PQ) < self.N :
-#             print self.PQ
-#         assert len(self.PQ) >= self.N, 'PQ should be full %d' % len(self.PQ)
         while self.PQ[0][1] not in self.CacheRecency or self.freq[self.PQ[0][1]] != self.PQ[0][0] :
             heapq.heappop(self.PQ) 
         return self.PQ[0][1]
@@ -127,8 +100,6 @@ class LeCaR(page_replacement_algorithm):
             pageToEvit,policyUsed = r,0
         elif policy == 1:
             pageToEvit,policyUsed = f,1
-            
-#         assert pageToEvit in self.CacheRecency
         
         return pageToEvit,policyUsed
     
@@ -163,19 +134,12 @@ class LeCaR(page_replacement_algorithm):
             
         if histevict is not None :
             del self.evictionTime[histevict]
-            del self.policyUsed[histevict]
             del self.freq[histevict]
     
-    def setTime(self, key, t):
-        if key not in self.TR:
-            self.TR[key] = 0
-        self.TR[key] += t 
-            
     ########################################################################################################################################
     ####REQUEST#############################################################################################################################
     ########################################################################################################################################
     def request(self,page) :
-        starttime = time.time()
         page_fault = False
         self.time = self.time + 1
         
@@ -204,46 +168,32 @@ class LeCaR(page_replacement_algorithm):
         ## Process page request 
         ##########################
         if page in self.CacheRecency:
-            st = time.time()
             page_fault = False
             self.pageHitUpdate(page)
-            self.setTime('pageHitUpdate',time.time()-st)
         else :
             
             #####################################################
             ## Learning step: If there is a page fault in history
             #####################################################
             pageevict = None
-            st = time.time()
 
             reward = np.array([0,0], dtype=np.float32)
             if page in self.Hist1:
                 pageevict = page
                 self.Hist1.delete(page)
                 reward[1] = self.error_discount_rate ** (self.time - self.evictionTime[pageevict])
-                reward_hat = reward 
             elif page in self.Hist2:
                 pageevict = page
                 self.Hist2.delete(page)
                 reward[0] = self.error_discount_rate ** (self.time - self.evictionTime[pageevict])
-                reward_hat = reward 
             
             #################
             ## Update Weights
             #################
             if pageevict is not None  :
-                self.W = self.W * np.exp(self.learningRate * reward_hat)
+                self.W = self.W * np.exp(self.learningRate * reward)
                 self.W = self.W / np.sum(self.W)
-#                 minweight = 0.01
-#                 if self.W[0] < minweight :
-#                     self.W[0] = minweight
-#                     self.W[1] = 1 - self.W[0]
-#                 elif self.W[1] < minweight :
-#                     self.W[1] = minweight
-#                     self.W[0] = 1 - self.W[1]
                 
-                
-            self.setTime('Hit in history and update weights',time.time()-st)
             ####################
             ## Remove from Cache
             ####################
@@ -252,39 +202,19 @@ class LeCaR(page_replacement_algorithm):
                 ################
                 ## Choose Policy
                 ################
-                st = time.time()
                 act = self.chooseRandom()
-                self.setTime('chooseRandom',time.time()-st)
-                
-                st = time.time()
                 cacheevict,poly = self.selectEvictPage(act)
-                self.policyUsed[cacheevict] = poly
                 self.evictionTime[cacheevict] = self.time
-                self.setTime('selectEvictPage',time.time()-st)
                 
                 ###################
                 ## Remove from Cache and Add to history
                 ###################
-                st = time.time()
                 self.evictPage(cacheevict)
                 self.addToHistory(poly, cacheevict)
-                self.setTime('selectEvictPage',time.time()-st)
                 
-            st = time.time()
             self.addToCache(page)
-            self.setTime('addToCache',time.time()-st)
             
             page_fault = True
-        
-#         st = time.time()
-#         self.q.put(notInHistory)
-#         self.sum += notInHistory
-#         if self.q.qsize() > self.N:
-#             self.sum -= self.q.get()
-#         self.NewPages.append(1.0*self.sum / (self.N))
-#         self.setTime('New pages',time.time()-st)
-        
-        self.setTime('total', time.time() - starttime)
         
         return page_fault
 

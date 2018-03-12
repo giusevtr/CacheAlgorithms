@@ -53,7 +53,7 @@ if __name__ == "__main__" :
     
     visualizeInternalStatePlot = True #experiment_name.endswith('.txt')
     
-    cache_percentage_label = cache_size_per *  100
+    
     
     ###############################################################
     ## Plot title
@@ -71,8 +71,10 @@ if __name__ == "__main__" :
     
     if cache_size_per < 1:
         cache_size = int(round(unique_pages*cache_size_per))
+        cache_size_label = str(cache_size_per *  100)
     else :
         cache_size = int(cache_size_per)
+        cache_size_label = str(cache_size)
     
     averaging_window_size = int(0.01*len(pages))
     print 'averaging_window_size = ', averaging_window_size
@@ -98,7 +100,7 @@ if __name__ == "__main__" :
     else :
         ax = plt.subplot(1,1,1)
         
-    ax.set_title('%s:%d\n' % (experiment_name,cache_percentage_label))
+    ax.set_title('%s:%s\n' % (experiment_name,cache_size_label))
     xlim1,xlim2 = 0,0
     for v in trace_obj.vertical_lines :
         plt.axvline(x=v,color='g',alpha=0.75)
