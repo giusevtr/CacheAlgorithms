@@ -29,8 +29,8 @@ class LaCReME(page_replacement_algorithm):
         self.Hist2 = CacheLinkedList(N)        
         
         ## Config variables
-        self.epsilon = 0.90
         self.error_discount_rate = (0.005)**(1.0/N)
+        self.learningRate = 0.05
         
         ## 
         self.policy = 0
@@ -232,7 +232,7 @@ class LaCReME(page_replacement_algorithm):
             ## Update Weights
             #################
             if pageevict is not None and self.policyUsed[pageevict] != -1 :
-                self.W = self.W * np.exp(self.Gamma * reward_hat)
+                self.W = self.W * np.exp(self.learningRate * reward_hat)
                 self.W = self.W / np.sum(self.W)
                 minweight = 0.01
                 if self.W[0] < minweight :
