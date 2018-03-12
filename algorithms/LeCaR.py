@@ -30,7 +30,7 @@ class LeCaR(page_replacement_algorithm):
         
         ## Config variables
         self.error_discount_rate = (0.005)**(1.0/N)
-        self.learningRate = 0.45
+        self.learning_rate = 0.45
         
         ## 
         self.evictionTime = {}
@@ -56,8 +56,8 @@ class LeCaR(page_replacement_algorithm):
             Y2 = np.array(self.Y2)
             ax = plt.subplot(2,1,1)
             ax.set_xlim(np.min(X), np.max(X))
-            l1, = plt.plot(self.X,Y1, 'y-', label='W_lru',linewidth=2)
-            l2, = plt.plot(self.X,Y2, 'b-', label='W_lfu',linewidth=1)
+            l1, = plt.plot(X,Y1, 'y-', label='W_lru',linewidth=2)
+            l2, = plt.plot(X,Y2, 'b-', label='W_lfu',linewidth=1)
             lbl.append(l1)
             lbl.append(l2)
         return lbl
@@ -191,7 +191,7 @@ class LeCaR(page_replacement_algorithm):
             ## Update Weights
             #################
             if pageevict is not None  :
-                self.W = self.W * np.exp(self.learningRate * reward)
+                self.W = self.W * np.exp(self.learning_rate * reward)
                 self.W = self.W / np.sum(self.W)
                 
             ####################
