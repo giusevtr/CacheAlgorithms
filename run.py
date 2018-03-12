@@ -51,7 +51,7 @@ if __name__ == "__main__" :
     blocksize = int(sys.argv[3])
     algorithm = sys.argv[4:]
     
-    visualizeInternalStatePlot = experiment_name.endswith('.txt')
+    visualizeInternalStatePlot = True #experiment_name.endswith('.txt')
     
     ###############################################################
     ## Plot title
@@ -72,7 +72,7 @@ if __name__ == "__main__" :
     else :
         cache_size = int(cache_size_per)
     
-    averaging_window_size = int(0.05*len(pages))
+    averaging_window_size = int(0.01*len(pages))
     print 'averaging_window_size = ', averaging_window_size
     
     colors = ['y','b','r','k','g', 'c', 'm']
@@ -149,26 +149,24 @@ if __name__ == "__main__" :
     
     cnt = rows
     labels = []
-    ax.set_ylim(-.05,1.05)
+    ax.set_ylim(-.15,1.05)
     ax.set_xlim(0,cols)
     for i in range(0,rows):        
         upper = data[i,:] / (averaging_window_size)
 #         lbl = "%s, %%%.2f" % (algorithm[i], hit_rate[i])
         lbl = "%s" % (algorithm[i])
         
-        l, = plt.plot(T,upper,c=colors[i],label=lbl,alpha=0.9,linewidth=(rows-i)*1.5)
+        l, = plt.plot(T,upper,c=colors[i],label=lbl,alpha=0.8,linewidth=(rows-i)*1.5)
         labels.append(l)
 
     hit_rate_text = ''
     for i in range(0, rows) :
         hit_rate_text += '%s:  %.2f\n' % (algorithm[i], hit_rate[i])
-    ax.annotate(hit_rate_text,(0.05,ANNOTATION_HEIGHT),textcoords='axes fraction',alpha=1, size=16, weight='bold')
-    
-    plt.xlabel('Request')
-    plt.ylabel('Hit Rate')
+    temp = ax.annotate(hit_rate_text,(0.05,-0.02),textcoords='axes fraction',alpha=1, size=8, weight='bold', backgroundcolor='w')
+    plt.xlabel('Requests')
+    plt.ylabel('Hit Rate (Window size = %d)' % averaging_window_size)
 #     plt.legend(handles=labels,fancybox=True, framealpha=0.5,bbox_to_anchor=(1.2, 1))
-    plt.legend(handles=labels,fancybox=True, framealpha=0.5)
-    
+    plt.legend(handles=labels,fancybox=True, framealpha=0.5,fontsize=8)
     
     outfilename = OUTPUT_FOLDER+experiment_name+'_'+str(cache_size)+'.jpeg' 
     

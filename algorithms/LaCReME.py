@@ -43,9 +43,9 @@ class LaCReME(page_replacement_algorithm):
         self.W = np.array([.5,.5], dtype=np.float32)
         
         self.Visualization = visualization
-        self.X = np.array([],dtype=np.int32)
-        self.Y1 = np.array([])
-        self.Y2 = np.array([])
+        self.X = []
+        self.Y1 = []
+        self.Y2 = []
         
         ###
         self.q = Queue.Queue()
@@ -61,10 +61,13 @@ class LaCReME(page_replacement_algorithm):
     def visualize(self, plt):
         lbl = []
         if self.Visualization:
+            X = np.array(self.X)
+            Y1 = np.array(self.Y1)
+            Y2 = np.array(self.Y2)
             ax = plt.subplot(2,1,1)
-            ax.set_xlim(np.min(self.X), np.max(self.X))
-            l1, = plt.plot(self.X,self.Y1, 'y-', label='W_lru')
-            l2, = plt.plot(self.X,self.Y2, 'b-', label='W_lfu')
+            ax.set_xlim(np.min(X), np.max(X))
+            l1, = plt.plot(self.X,Y1, 'y-', label='W_lru')
+            l2, = plt.plot(self.X,Y2, 'b-', label='W_lfu')
             lbl.append(l1)
             lbl.append(l2)
 #         totaltime = 0
@@ -192,9 +195,10 @@ class LaCReME(page_replacement_algorithm):
         ## Visualization data
         #####################
         if self.Visualization:
-            self.X = np.append(self.X, self.time)
-            self.Y1 = np.append(self.Y1, self.W[0])
-            self.Y2 = np.append(self.Y2, self.W[1])
+            self.X.append(self.time)
+            self.Y1.append(self.W[0])
+            self.Y2.append(self.W[1])
+            
         
         ##########################
         ## Process page request 
