@@ -194,10 +194,10 @@ class LeCaR(page_replacement_algorithm):
         #####################
         ## Visualization data
         #####################
-        if self.Visualization:
-            self.X  = np.append(self.X, self.time)
-            self.Y1 = np.append(self.Y1, self.W[0] / np.sum(self.W))
-            self.Y2 = np.append(self.Y2, self.W[1] / np.sum(self.W))
+#         if self.Visualization:
+#             self.X  = np.append(self.X, self.time)
+#             self.Y1 = np.append(self.Y1, self.W[0] / np.sum(self.W))
+#             self.Y2 = np.append(self.Y2, self.W[1] / np.sum(self.W))
         
         ##########################
         ## Process page request 
@@ -233,7 +233,10 @@ class LeCaR(page_replacement_algorithm):
             if pageevict is not None and self.policyUsed[pageevict] != -1 :
                 self.W = self.W * np.exp(self.epsilon * reward_hat / 2)
 #                 self.W = self.W / np.sum(self.W)
-            
+                
+                if np.sum(self.W) > 1e9 :
+                    self.W = self.W / 2.0
+                
             self.setTime('Hit in history and update weights',time.time()-st)
             ####################
             ## Remove from Cache
