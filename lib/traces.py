@@ -76,7 +76,6 @@ class Trace:
             self.blocksize = 512
             startTime = None
             timeLimit = 2e12
-            print 'debug: resing .csv file'
             for line in f :
                 try :
                     row = line.split(',')

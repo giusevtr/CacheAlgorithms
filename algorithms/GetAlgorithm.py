@@ -26,11 +26,11 @@ from algorithms.LaCrema2 import LaCrema2
 from algorithms.LaCReME_context1 import LaCReME_context1
 from algorithms.LaCReME_LFU_ARC import LaCReME_LFU_ARC
 from algorithms.LaCReME_T1T2 import LaCReME_T1T2
-from algorithms.LaCReME_v2 import LaCReME_v2
 from algorithms.LaCReME_v3 import LaCReME_v3
 from algorithms.LOMP import LOMP
 from algorithms.OLCR import OLCR
 from algorithms.OLCR_RAND import OLCR_RAND
+from algorithms.LeCaR_unnorm import LeCaR
 
 
 
@@ -98,6 +98,9 @@ def GetAlgorithm(cache_size,name, visualization = False):
         return OLCR(cache_size)   
     elif lower_name == 'olcr_rand' :
         return OLCR_RAND(cache_size)   
+    elif lower_name == 'lecar_unnorm' :
+        return LeCaR(cache_size)   
+    
     
     return None       
 
