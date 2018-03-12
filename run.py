@@ -10,7 +10,7 @@ import matplotlib.pyplot as plt
 ## python cache_size experiment_name algorithms
 ##
 
-ANNOTATION_HEIGHT =0
+ANNOTATION_HEIGHT =0.7
 
 def getLowLim(data, i):
     n = data.shape[1] # columns
@@ -71,7 +71,7 @@ if __name__ == "__main__" :
     
     if cache_size_per < 1:
         cache_size = int(round(unique_pages*cache_size_per))
-        cache_size_label = str(cache_size_per *  100)
+        cache_size_label = str(float(cache_size_per *  100)) + '%'
     else :
         cache_size = int(cache_size_per)
         cache_size_label = str(cache_size)
@@ -166,7 +166,7 @@ if __name__ == "__main__" :
     hit_rate_text = ''
     for i in range(0, rows) :
         hit_rate_text += '%s:  %.2f\n' % (algorithm[i], hit_rate[i])
-    temp = ax.annotate(hit_rate_text,(0.05,-0.02),textcoords='axes fraction',alpha=1, size=8, weight='bold', backgroundcolor='w')
+    temp = ax.annotate(hit_rate_text,(0.01,0.8),textcoords='axes fraction',alpha=1, size=8, weight='bold', backgroundcolor='w')
     plt.xlabel('Requests')
     plt.ylabel('Hit Rate (Window size = %d)' % averaging_window_size)
 #     plt.legend(handles=labels,fancybox=True, framealpha=0.5,bbox_to_anchor=(1.2, 1))
