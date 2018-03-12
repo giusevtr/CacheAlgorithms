@@ -231,7 +231,7 @@ class LaCReME(page_replacement_algorithm):
             #################
             ## Update Weights
             #################
-            if pageevict is not None and self.policyUsed[pageevict] != -1 :
+            if pageevict is not None  :
                 self.W = self.W * np.exp(self.learningRate * reward_hat)
                 self.W = self.W / np.sum(self.W)
                 minweight = 0.01
