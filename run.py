@@ -53,6 +53,8 @@ if __name__ == "__main__" :
     
     visualizeInternalStatePlot = True #experiment_name.endswith('.txt')
     
+    cache_percentage_label = cache_size_per *  100
+    
     ###############################################################
     ## Plot title
     ###############################################################
@@ -96,7 +98,7 @@ if __name__ == "__main__" :
     else :
         ax = plt.subplot(1,1,1)
         
-    ax.set_title('%s:%d\n' % (experiment_name,cache_size))
+    ax.set_title('%s:%d\n' % (experiment_name,cache_percentage_label))
     xlim1,xlim2 = 0,0
     for v in trace_obj.vertical_lines :
         plt.axvline(x=v,color='g',alpha=0.75)
