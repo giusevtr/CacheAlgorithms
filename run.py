@@ -5,6 +5,8 @@ import numpy as np
 from algorithms.GetAlgorithm import GetAlgorithm
 from lib.traces import Trace
 import matplotlib.pyplot as plt
+import warnings
+warnings.filterwarnings("ignore")
 
 ##
 ## python cache_size experiment_name algorithms
@@ -134,7 +136,7 @@ if __name__ == "__main__" :
         plt.axvline(x=v,color='g',alpha=0.75)
     
     i = 0
-    summary = ''
+    summary = 'name\thit rate\thits\tunique\tnumber of pages'
     algorithms_used = ''
     for name in algorithm :
         algo = GetAlgorithm(cache_size, name, visualization = visualizeInternalStatePlot)
@@ -160,16 +162,22 @@ if __name__ == "__main__" :
         ## Store raw data
         ##################
         temp = [name] + hit_sum
-#         rawData.append(temp)
         data_dict['%s_hits' % name] = hit_sum 
-        algorithms_used += name if algorithms_used == "" else '_'+name
-#         hitRate = round(100.0 * hits / num_pages,2)
+        algorithms_used += name if algorithms_used == "" else ':'+name
         
-        print("{:<20} {:<20} {:<20} {:<20} {:<20}  {:<20}".format(name, round(100.0 * hits / num_pages,2), hits, num_pages, trace_obj.unique_pages(), round(end-start,3)))
+        
+        hr = round(100.0 * hits / num_pages,2)
+        hi = hits
+        nu = num_pages
+        un = trace_obj.unique_pages()
+        ti = round(end-start,3)
+        
+        result = "{:<20} {:<20} {:<20} {:<20} {:<20}  {:<20}".format(name, round(100.0 * hits / num_pages,2), hits, num_pages, trace_obj.unique_pages(), round(end-start,3))
+        print(result)
+        summary += '%s\t%.2f\t%d\t%d\t%d\n' % (name,hr, hi, un, nu)
 
         sys.stdout.flush()
     ax.set_ylim(-0.05,1.05)
-#     ax.autoscale(axis='both')
     plt.xlabel('Time')
     plt.ylabel('Weight')
     plt.legend(handles=labels,fancybox=True, framealpha=0.5)
@@ -215,22 +223,35 @@ if __name__ == "__main__" :
     plt.legend(handles=labels,fancybox=True, framealpha=0.5,fontsize=8)
     
     
+    #####################################################################################################################################################################
+    #####################################################################################################################################################################
+    #####################################################################################################################################################################
+    
+        
+            
     ######################
     ## Save image
     #######################
     imagefilename = IMAGE_FOLDER+experiment_name+'_'+str(cache_size)+'.jpeg' 
-    print(imagefilename)
+    print 'Saving graph image ', imagefilename
     plt.savefig(imagefilename)
     
+    ######################
+    ## Save data arrays
+    #######################
     if OUTPUT_FOLDER is not None:
         for key in data_dict :
-            outfilename =  OUTPUT_FOLDER + "%s:%s:%s:%s" %(key, experiment_name, str(cache_size), algorithms_used)
-            
+            outfilename =  OUTPUT_FOLDER + "%s_%s_%s_%s.npy" %(key, experiment_name, str(cache_size), algorithms_used)
             print 'Saving %s' % outfilename
-            
             np.save(outfilename, data_dict[key])
-            
-        
     
+    ######################
+    ## Save summary
+    #######################
+    if OUTPUT_FOLDER is not None:
+        summaryfilename =  OUTPUT_FOLDER + "summary_%s_%s_%s.txt" % (experiment_name, str(cache_size), algorithms_used)
+        print 'Saving %s' % summaryfilename
+        f = open(summaryfilename, 'w')
+        f.write(summary)
+        f.close()
     
-#     plt.show()
