@@ -1,8 +1,8 @@
 #!/bin/bash
 
-CACHE_SIZE=0.2
-FILES=(topgun-110108-112108.1.blkparse)
-ALGORITHMS=(lru lfu arc lacreme)
+CACHE_SIZE=500
+FILES=(500_10000_LFU_LRUx100Result.txt)
+ALGORITHMS=(lru lfu arc LeCaR)
 BLOCKSIZE=1
 
 for ((i=0;i<${#FILES[@]};++i)); do

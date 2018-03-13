@@ -11,7 +11,8 @@ import matplotlib.pyplot as plt
 ##
 
 ANNOTATION_HEIGHT =0.7
-
+IMAGE_FOLDER='output/'
+    
 def getLowLim(data, i):
     n = data.shape[1] # columns
     m = data.shape[0] # rows
@@ -30,7 +31,12 @@ def getLowLim(data, i):
 
 if __name__ == "__main__" :
     INPUT_CONFIG_FILE = 'config/input_data_location.txt'
+    OUTPUT_CONFIG_FILE = 'config/output_data_location.txt'
     
+    ###########################################################################
+    ## Specify input folder
+    ## Create a file input_data_location.txt and put in the config folder
+    ###########################################################################
     if os.path.isfile(INPUT_CONFIG_FILE) :
         f = open(INPUT_CONFIG_FILE, 'r')
         DATA_FOLDER = f.readline().rstrip('\n\r')
@@ -38,7 +44,22 @@ if __name__ == "__main__" :
         print('%s not found')
         sys.exit(0)
     
-    OUTPUT_FOLDER='output/'
+    
+    ###########################################################################
+    ## Specify output location
+    ## Create a file output_data_location.txt and put in the config folder
+    ## This file should contain the path where the outputs will be saved
+    ###########################################################################
+    if os.path.isfile(OUTPUT_CONFIG_FILE) :
+        f = open(OUTPUT_CONFIG_FILE, 'r')
+        OUTPUT_FOLDER = f.readline().rstrip('\n\r')
+    else:
+        print('No output file found! No csv file will be generated. Create file config/output_data_location.txt. to get the output data')
+        OUTPUT_FOLDER = None
+    
+        
+        
+    
     
     if len(sys.argv) <= 4 :
         print('Must provide more than 3 arguments')
@@ -54,6 +75,10 @@ if __name__ == "__main__" :
     visualizeInternalStatePlot = True #experiment_name.endswith('.txt')
     
     
+    ###############################################################
+    ## Save data here
+    ###############################################################
+    data_dict = {}
     
     ###############################################################
     ## Plot title
@@ -99,13 +124,18 @@ if __name__ == "__main__" :
         ax = plt.subplot(2,1,1)
     else :
         ax = plt.subplot(1,1,1)
-        
+    
+    #########################
+    ## Plot vertical lines
+    #########################
     ax.set_title('%s:%s\n' % (experiment_name,cache_size_label))
     xlim1,xlim2 = 0,0
     for v in trace_obj.vertical_lines :
         plt.axvline(x=v,color='g',alpha=0.75)
     
     i = 0
+    summary = ''
+    algorithms_used = ''
     for name in algorithm :
         algo = GetAlgorithm(cache_size, name, visualization = visualizeInternalStatePlot)
         
@@ -115,6 +145,7 @@ if __name__ == "__main__" :
         
         if visualizeInternalStatePlot:
             lbl = algo.visualize(plt)
+            data_dict['%s_weights' % name] = algo.getWeights()
         else :
             lbl = []
         i += 1
@@ -124,6 +155,16 @@ if __name__ == "__main__" :
         temp = np.append(np.zeros(averaging_window_size), hit_sum[:-averaging_window_size])
         data.append(hit_sum-temp)
         hit_rate.append(round(100.0 * hits / num_pages,2))
+        
+        ##################
+        ## Store raw data
+        ##################
+        temp = [name] + hit_sum
+#         rawData.append(temp)
+        data_dict['%s_hits' % name] = hit_sum 
+        algorithms_used += name if algorithms_used == "" else '_'+name
+#         hitRate = round(100.0 * hits / num_pages,2)
+        
         print("{:<20} {:<20} {:<20} {:<20} {:<20}  {:<20}".format(name, round(100.0 * hits / num_pages,2), hits, num_pages, trace_obj.unique_pages(), round(end-start,3)))
 
         sys.stdout.flush()
@@ -133,6 +174,7 @@ if __name__ == "__main__" :
     plt.ylabel('Weight')
     plt.legend(handles=labels,fancybox=True, framealpha=0.5)
     data = np.array(data)
+    
     print('=====================================================')
 
     #####################
@@ -172,8 +214,23 @@ if __name__ == "__main__" :
 #     plt.legend(handles=labels,fancybox=True, framealpha=0.5,bbox_to_anchor=(1.2, 1))
     plt.legend(handles=labels,fancybox=True, framealpha=0.5,fontsize=8)
     
-    outfilename = OUTPUT_FOLDER+experiment_name+'_'+str(cache_size)+'.jpeg' 
     
-    print(outfilename)
-    plt.savefig(outfilename)
+    ######################
+    ## Save image
+    #######################
+    imagefilename = IMAGE_FOLDER+experiment_name+'_'+str(cache_size)+'.jpeg' 
+    print(imagefilename)
+    plt.savefig(imagefilename)
+    
+    if OUTPUT_FOLDER is not None:
+        for key in data_dict :
+            outfilename =  OUTPUT_FOLDER + "%s:%s:%s:%s" %(key, experiment_name, str(cache_size), algorithms_used)
+            
+            print 'Saving %s' % outfilename
+            
+            np.save(outfilename, data_dict[key])
+            
+        
+    
+    
 #     plt.show()

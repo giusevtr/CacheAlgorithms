@@ -62,6 +62,9 @@ class LeCaR(page_replacement_algorithm):
             lbl.append(l2)
         return lbl
     
+    def getWeights(self):
+        return np.array([self. X, self.Y1, self.Y2]).T
+    
     ##############################################################
     ## There was a page hit to 'page'. Update the data structures
     ##############################################################
