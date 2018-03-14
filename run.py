@@ -59,9 +59,6 @@ if __name__ == "__main__" :
         print('No output file found! No csv file will be generated. Create file config/output_data_location.txt. to get the output data')
         OUTPUT_FOLDER = None
     
-        
-        
-    
     
     if len(sys.argv) <= 4 :
         print('Must provide more than 3 arguments')
@@ -232,7 +229,7 @@ if __name__ == "__main__" :
     ######################
     ## Save image
     #######################
-    imagefilename = IMAGE_FOLDER+experiment_name+'_'+str(cache_size)+'.jpeg' 
+    imagefilename = IMAGE_FOLDER + '%s_%s_%s.jpeg' % (experiment_name,str(cache_size),algorithms_used) 
     print 'Saving graph image ', imagefilename
     plt.savefig(imagefilename)
     
