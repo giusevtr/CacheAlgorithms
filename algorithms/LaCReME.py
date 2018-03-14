@@ -30,7 +30,7 @@ class LaCReME(page_replacement_algorithm):
         
         ## Config variables
         self.error_discount_rate = (0.005)**(1.0/N)
-        self.learningRate = 0.05
+        self.learningRate = 0.45
         
         ## 
         self.policy = 0
@@ -234,13 +234,13 @@ class LaCReME(page_replacement_algorithm):
             if pageevict is not None  :
                 self.W = self.W * np.exp(self.learningRate * reward_hat)
                 self.W = self.W / np.sum(self.W)
-                minweight = 0.01
-                if self.W[0] < minweight :
-                    self.W[0] = minweight
-                    self.W[1] = 1 - self.W[0]
-                elif self.W[1] < minweight :
-                    self.W[1] = minweight
-                    self.W[0] = 1 - self.W[1]
+#                 minweight = 0.01
+#                 if self.W[0] < minweight :
+#                     self.W[0] = minweight
+#                     self.W[1] = 1 - self.W[0]
+#                 elif self.W[1] < minweight :
+#                     self.W[1] = minweight
+#                     self.W[0] = 1 - self.W[1]
                 
                 
             self.setTime('Hit in history and update weights',time.time()-st)

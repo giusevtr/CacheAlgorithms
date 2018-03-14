@@ -21,6 +21,9 @@ class page_replacement_algorithm :
     def visualize(self, plt):
         pass
     
+    def getWeights(self):
+        return None
+    
     def test_algorithm(self,pages,  partition_size = 10) :
         hits = 0
         last_percent = -1

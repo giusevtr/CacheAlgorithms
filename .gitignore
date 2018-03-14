@@ -9,3 +9,4 @@ data/*
 *.ods#
 .ods
 *.gz
+*.sh

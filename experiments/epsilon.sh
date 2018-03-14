@@ -1,10 +1,12 @@
 #!/bin/bash
 
-CACHE_SIZE=0.1
-FILES=(epsilon_lru_lfu.txt epsilon_lfu_lru.txt)
-ALGORITHMS=(LRU LFU ARC LaCReME LaCReME_v3)
+CACHE_SIZE=(0.009 50)
+FILES=(epsilon_lru_lfu.txt)
+ALGORITHMS=(LRU LFU ARC LeCaR_clock)
 BLOCKSIZE=1
 
-for ((i=0;i<${#FILES[@]};++i)); do
-    python ../run.py "${CACHE_SIZE}" "${FILES[i]}" "${BLOCKSIZE}" "${ALGORITHMS[@]}"
-done
+for ((cz=0;cz<${#CACHE_SIZE[@]};++cz)); do
+	for ((i=0;i<${#FILES[@]};++i)); do
+	    python ../run.py "${CACHE_SIZE[cz]}" "${FILES[i]}" "${BLOCKSIZE}" "${ALGORITHMS[@]}"
+	done
+done 

@@ -1,5 +1,4 @@
 #!/bin/bash
-
 CACHE_SIZE=0.05
 FILES=(casa2.blkparse)
 ALGORITHMS=(lru lfu arc lacreme)

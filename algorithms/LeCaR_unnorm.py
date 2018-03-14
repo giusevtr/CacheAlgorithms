@@ -16,7 +16,7 @@ os.environ['TF_CPP_MIN_LOG_LEVEL'] = '3'
 ##      Every time we get a page hit, mark the page and also move it to the MRU position
 ## Page faults:
 ##      Evict an unmark page with the probability proportional to its position in the LRU list.
-class LeCaR(page_replacement_algorithm):
+class LeCaR_unnorm(page_replacement_algorithm):
 
     def __init__(self, N, visualization = True):
         self.N = N
