@@ -1,8 +1,8 @@
 #!/bin/bash
 
 CACHE_SIZE=0.001
-FILES=(ikki-110108-112108.5.blkparse)
-ALGORITHMS=(lru lfu arc LaCReMe)
+FILES=(cheetah.cs.fiu.edu-110108-113008.3.blkparse)
+ALGORITHMS=(lru lfu arc LaCReME)
 BLOCKSIZE=512
 
 for ((i=0;i<${#FILES[@]};++i)); do

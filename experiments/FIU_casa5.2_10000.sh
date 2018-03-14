@@ -1,7 +1,7 @@
 #!/bin/bash
 
-CACHE_SIZE=0.001
-FILES=(ikki-110108-112108.5.blkparse)
+CACHE_SIZE=0.10
+FILES=(casa5.2_10000.blkparse)
 ALGORITHMS=(lru lfu arc LaCReMe)
 BLOCKSIZE=512
 

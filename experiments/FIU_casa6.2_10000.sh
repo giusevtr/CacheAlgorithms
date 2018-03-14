@@ -1,8 +1,8 @@
 #!/bin/bash
 
-CACHE_SIZE=0.001
-FILES=(ikki-110108-112108.5.blkparse)
-ALGORITHMS=(lru lfu arc LaCReMe)
+CACHE_SIZE=0.10
+FILES=(casa5.2_10000.blkparse)
+ALGORITHMS=(lru lfu arc LaCReME_v2)
 BLOCKSIZE=512
 
 for ((i=0;i<${#FILES[@]};++i)); do

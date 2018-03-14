@@ -1,7 +1,7 @@
 #!/bin/bash
 
-CACHE_SIZE=0.2
-FILES=(topgun-110108-112108.1.blkparse)
+CACHE_SIZE=0.05
+FILES=(casa2.blkparse)
 ALGORITHMS=(lru lfu arc lacreme)
 BLOCKSIZE=1
 
