@@ -46,7 +46,6 @@ class OLCR(page_replacement_algorithm):
         self.sum = 0
         self.NewPages = []
         
-        
         self.c_hits = 0
         self.h_miss = 0
         
@@ -114,7 +113,7 @@ class OLCR(page_replacement_algorithm):
         self.cost = -tf.reduce_mean(self.C_r * tf.log(1-self.predict[0,0]) + self.C_f * tf.log(1-self.predict[0,1]))
         
         
-        learning_rate = 0.001
+        learning_rate = 0.01
         self.optimizer = tf.train.AdamOptimizer(learning_rate=learning_rate).minimize(self.cost)
         
         ##################################
@@ -136,6 +135,9 @@ class OLCR(page_replacement_algorithm):
     
     def visualize(self, plt):
         return []
+    
+    
+    
     
     ##############################################################
     ## There was a page hit to 'page'. Update the data structures
@@ -236,7 +238,9 @@ class OLCR(page_replacement_algorithm):
                                                                 self.C_r:R,
                                                                 self.C_f:F})
             
-            self.sess.run(self.optimizer, feed_dict={   self.X:X_1, 
+            
+            for _ in range(0, 50) :
+                self.sess.run(self.optimizer, feed_dict={   self.X:X_1, 
                                                         self.C_r:R,
                                                         self.C_f:F})
             

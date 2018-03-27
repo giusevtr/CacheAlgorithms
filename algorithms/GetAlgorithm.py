@@ -30,6 +30,7 @@ from algorithms.LaCReME_v3 import LaCReME_v3
 from algorithms.LeCaR_unnorm import LeCaR_unnorm
 from algorithms.LeCaR import LeCaR
 from algorithms.LeCaR_clock import LeCaR_clock
+from algorithms.OLCR import OLCR
 
 
 from algorithms.BANDIT_WITH_ARC import BANDIT_WITH_ARC
@@ -96,6 +97,9 @@ def GetAlgorithm(cache_size,name, visualization = False):
         return LeCaR(cache_size)   
     elif lower_name == 'lecar_clock' :
         return LeCaR_clock(cache_size)   
+    elif lower_name == 'olcr' :
+        return OLCR(cache_size)   
+    
     
     
     

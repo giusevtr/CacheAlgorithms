@@ -46,7 +46,6 @@ if __name__ == "__main__" :
         print('%s not found')
         sys.exit(0)
     
-    
     ###########################################################################
     ## Specify output location
     ## Create a file output_data_location.txt and put in the config folder
@@ -58,7 +57,6 @@ if __name__ == "__main__" :
     else:
         print('No output file found! No csv file will be generated. Create file config/output_data_location.txt. to get the output data')
         OUTPUT_FOLDER = None
-    
     
     if len(sys.argv) <= 4 :
         print('Must provide more than 3 arguments')
@@ -95,7 +93,7 @@ if __name__ == "__main__" :
     
     if cache_size_per < 1:
         cache_size = int(round(unique_pages*cache_size_per))
-        cache_size_label = str(float(cache_size_per *  100)) + '%'
+        cache_size_label =  str(float(cache_size_per))
     else :
         cache_size = int(cache_size_per)
         cache_size_label = str(cache_size)
@@ -127,7 +125,7 @@ if __name__ == "__main__" :
     #########################
     ## Plot vertical lines
     #########################
-    ax.set_title('%s:%s\n' % (experiment_name,cache_size_label))
+#     ax.set_title('%s:%s\n' % (experiment_name,cache_size_label))
     xlim1,xlim2 = 0,0
     for v in trace_obj.vertical_lines :
         plt.axvline(x=v,color='g',alpha=0.75)
@@ -142,9 +140,14 @@ if __name__ == "__main__" :
         hits, part_hit_rate, hit_sum = algo.test_algorithm(pages, partition_size=averaging_window_size)
         end = time.time()
         
+        stat = algo.getStats()
+        if stat is not None:
+            for attr in stat :
+                data_dict['%s_%s' % (name, attr)] = stat[attr]
+        
         if visualizeInternalStatePlot:
             lbl = algo.visualize(plt)
-            data_dict['%s_weights' % name] = algo.getWeights()
+#             data_dict['%s_weights' % name] = algo.getWeights()
         else :
             lbl = []
         i += 1
@@ -175,10 +178,13 @@ if __name__ == "__main__" :
 
         sys.stdout.flush()
     ax.set_ylim(-0.05,1.05)
-    plt.xlabel('Time')
+#     plt.xlabel('Time')
     plt.ylabel('Weight')
-    plt.legend(handles=labels,fancybox=True, framealpha=0.5)
+#     plt.legend(handles=labels,fancybox=True, framealpha=0.5)
+    plt.legend(handles=labels,fancybox=True, framealpha=0.5,fontsize=10,loc='center left', bbox_to_anchor=(1.1, 0.5))
     data = np.array(data)
+#     plt.subplots_adjust(left=0, bottom=0, right=1, top=1, wspace=0, hspace=0)
+    
     
     print('=====================================================')
 
@@ -203,33 +209,39 @@ if __name__ == "__main__" :
     ax.set_ylim(-.15,1.05)
     ax.set_xlim(0,cols)
     for i in range(0,rows):        
-        upper = data[i,:] / (averaging_window_size)
-#         lbl = "%s, %%%.2f" % (algorithm[i], hit_rate[i])
-        lbl = "%s" % (algorithm[i])
+        hitrate = data[i,:] / (averaging_window_size)
         
-        l, = plt.plot(T,upper,c=colors[i],label=lbl,alpha=0.8,linewidth=(rows-i)*1.5)
+        data_dict['%s_hits' % algorithm[i]] = np.array([T, data[i,:]]) .T
+        data_dict['%s_hit_rate' % algorithm[i]] = np.array([T, hitrate]).T
+        
+        lbl = "%s" % (algorithm[i])
+        l, = plt.plot(T,hitrate,c=colors[i],label=lbl,alpha=0.8,linewidth=(rows-i)*1.5)
         labels.append(l)
 
     hit_rate_text = ''
     for i in range(0, rows) :
         hit_rate_text += '%s:  %.2f\n' % (algorithm[i], hit_rate[i])
-    temp = ax.annotate(hit_rate_text,(0.01,0.8),textcoords='axes fraction',alpha=1, size=8, weight='bold', backgroundcolor='w')
+#     temp = ax.annotate(hit_rate_text,(0.01,0.8),textcoords='axes fraction',alpha=1, size=8, weight='bold', backgroundcolor='w')
+    temp = ax.annotate(hit_rate_text,(1.055,0.7),textcoords='axes fraction',alpha=1, size=10, weight='bold', backgroundcolor='w')
+    
     plt.xlabel('Requests')
-    plt.ylabel('Hit Rate (Window size = %d)' % averaging_window_size)
-#     plt.legend(handles=labels,fancybox=True, framealpha=0.5,bbox_to_anchor=(1.2, 1))
-    plt.legend(handles=labels,fancybox=True, framealpha=0.5,fontsize=8)
-    
+#     plt.ylabel('Hit Rate (Window size = %d)' % averaging_window_size)
+    plt.ylabel('Hit Rate')
+#     plt.legend(handles=labels,fancybox=True, framealpha=0.5)
+    plt.legend(handles=labels,fancybox=True, framealpha=0.5,loc='center left', fontsize=10, bbox_to_anchor=(1.1, 0.5))
     
     #####################################################################################################################################################################
     #####################################################################################################################################################################
     #####################################################################################################################################################################
     
-        
+    
+    plt.subplots_adjust(left=0.1, right =0.82)
+    
             
     ######################
     ## Save image
     #######################
-    imagefilename = IMAGE_FOLDER + '%s_%s_%s.jpeg' % (experiment_name,str(cache_size),algorithms_used) 
+    imagefilename = IMAGE_FOLDER + '%s_%s_%s.jpeg' % (experiment_name,cache_size_label,algorithms_used) 
     print 'Saving graph image ', imagefilename
     plt.savefig(imagefilename)
     
@@ -238,7 +250,7 @@ if __name__ == "__main__" :
     #######################
     if OUTPUT_FOLDER is not None:
         for key in data_dict :
-            outfilename =  OUTPUT_FOLDER + "%s_%s_%s_%s.npy" %(key, experiment_name, str(cache_size), algorithms_used)
+            outfilename =  OUTPUT_FOLDER + "%s_%s_%s.npy" %(key, experiment_name, cache_size_label)
             print 'Saving %s' % outfilename
             np.save(outfilename, data_dict[key])
     
@@ -246,7 +258,7 @@ if __name__ == "__main__" :
     ## Save summary
     #######################
     if OUTPUT_FOLDER is not None:
-        summaryfilename =  OUTPUT_FOLDER + "summary_%s_%s_%s.txt" % (experiment_name, str(cache_size), algorithms_used)
+        summaryfilename =  OUTPUT_FOLDER + "summary_%s_%s_%s.txt" % (experiment_name, cache_size_label, algorithms_used)
         print 'Saving %s' % summaryfilename
         f = open(summaryfilename, 'w')
         f.write(summary)

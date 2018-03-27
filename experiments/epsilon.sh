@@ -1,8 +1,8 @@
 #!/bin/bash
 
-CACHE_SIZE=(0.009 50)
+CACHE_SIZE=(50)
 FILES=(epsilon_lru_lfu.txt)
-ALGORITHMS=(LRU LFU ARC LeCaR_clock)
+ALGORITHMS=(LRU LFU LeCaR OLCR)
 BLOCKSIZE=1
 
 for ((cz=0;cz<${#CACHE_SIZE[@]};++cz)); do
