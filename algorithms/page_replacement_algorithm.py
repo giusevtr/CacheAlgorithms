@@ -18,6 +18,9 @@ class page_replacement_algorithm :
     def get_N(self) :
         raise('Need to implement this method')
     
+    def getStats(self):
+        return None
+
     def visualize(self, plt):
         pass
     

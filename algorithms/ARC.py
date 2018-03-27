@@ -20,6 +20,21 @@ class ARC(page_replacement_algorithm):
         self.X = []
         self.Y = []
         
+        self.unique = {}
+        self.unique_cnt = 0
+        self.pollution_dat_x = []
+        self.pollution_dat_y = []
+        
+    
+    def getWeights(self):
+#         return np.array([self. X, self.Y1, self.Y2,self.pollution_dat_x,self.pollution_dat_y ]).T
+        return np.array([self.pollution_dat_x,self.pollution_dat_y ]).T
+    
+    def getStats(self):
+        d={}
+        d['pollution'] = np.array([self.pollution_dat_x, self.pollution_dat_y ]).T
+        return d
+    
     def visualize(self, plt):
 #         l1, = plt.plot(self.X,self.Y,'r-', label='ARC p-value')
 #         return [l1]
@@ -50,8 +65,9 @@ class ARC(page_replacement_algorithm):
                 assert self.T2.delete(page)
 
             assert self.T2.add(page), 'failed adding to T2 at Case 1'
-
+            
         elif self.B1.inDisk(page) :
+            
             if self.B2.size() > self.B1.size() :
                 r = self.B2.size() / self.B1.size()
             else :
@@ -87,7 +103,22 @@ class ARC(page_replacement_algorithm):
             # Add page to the MRU position in T1
             assert self.T1.add(page), 'failed adding page to T1 at case 4'
             page_fault = True
-
+        
+        
+        if page_fault :
+            self.unique_cnt += 1
+        
+        self.unique[page] = self.unique_cnt
+        
+        if self.time % self.N == 0:
+            pollution = 0
+            for pg in self.T1.getData() + self.T2.getData():
+                if self.unique_cnt - self.unique[pg] >= 2*self.N:
+                    pollution += 1
+            self.pollution_dat_x.append(self.time)
+            self.pollution_dat_y.append(100 * pollution / self.N)
+        
+        
         return page_fault
 
     def __replace(self,x) :

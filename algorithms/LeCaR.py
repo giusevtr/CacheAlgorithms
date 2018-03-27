@@ -30,7 +30,7 @@ class LeCaR(page_replacement_algorithm):
         
         ## Config variables
         self.error_discount_rate = (0.005)**(1.0/N)
-        self.learning_rate = 0.45
+        self.learning_rate = 0.5
         
         ## 
         self.evictionTime = {}
@@ -44,6 +44,11 @@ class LeCaR(page_replacement_algorithm):
         self.Y1 = []
         self.Y2 = []
         
+        self.unique = {}
+        self.unique_cnt = 0
+        self.pollution_dat_x = []
+        self.pollution_dat_y = []
+        
         
     def get_N(self) :
         return self.N
@@ -56,14 +61,28 @@ class LeCaR(page_replacement_algorithm):
             Y2 = np.array(self.Y2)
             ax = plt.subplot(2,1,1)
             ax.set_xlim(np.min(X), np.max(X))
+            
+            l3, = plt.plot(self.pollution_dat_x,self.pollution_dat_y, 'g-', label='hoarding',linewidth=3)
             l1, = plt.plot(X,Y1, 'y-', label='W_lru',linewidth=2)
             l2, = plt.plot(X,Y2, 'b-', label='W_lfu',linewidth=1)
+            
+            
+            
             lbl.append(l1)
             lbl.append(l2)
+            lbl.append(l3)
+            
         return lbl
     
     def getWeights(self):
-        return np.array([self. X, self.Y1, self.Y2]).T
+        return np.array([self. X, self.Y1, self.Y2,self.pollution_dat_x,self.pollution_dat_y ]).T
+#         return np.array([self.pollution_dat_x,self.pollution_dat_y ]).T
+    
+    def getStats(self):
+        d={}
+        d['weights'] = np.array([self. X, self.Y1, self.Y2]).T
+        d['pollution'] = np.array([self.pollution_dat_x, self.pollution_dat_y ]).T
+        return d
     
     ##############################################################
     ## There was a page hit to 'page'. Update the data structures
@@ -175,6 +194,7 @@ class LeCaR(page_replacement_algorithm):
             self.pageHitUpdate(page)
         else :
             
+            
             #####################################################
             ## Learning step: If there is a page fault in history
             #####################################################
@@ -218,6 +238,22 @@ class LeCaR(page_replacement_algorithm):
             self.addToCache(page)
             
             page_fault = True
+        
+        ## Count pollution
+        
+        
+        if page_fault:
+            self.unique_cnt += 1
+        self.unique[page] = self.unique_cnt
+        
+        if self.time % self.N == 0:
+            pollution = 0
+            for pg in self.CacheRecency:
+                if self.unique_cnt - self.unique[pg] >= 2*self.N:
+                    pollution += 1
+            
+            self.pollution_dat_x.append(self.time)
+            self.pollution_dat_y.append(100* pollution / self.N)
         
         return page_fault
 

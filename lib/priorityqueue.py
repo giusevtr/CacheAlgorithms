@@ -139,7 +139,10 @@ class priorityqueue(CacheDataStruct):
             if h is not None:
                 L.append(self.__freq[h])
         print(L)
-        
+    
+    def getData(self):
+        return self.__freq.keys()
+    
 if __name__ == "__main__" :
     
     pq = priorityqueue(30)

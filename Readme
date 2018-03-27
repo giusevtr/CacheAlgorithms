@@ -1,3 +1,19 @@
-Run algoAnimator.py 
+To set up:
 
-Must have pygame installed
+go to the folder 
+
+cd experiments/config/. 
+
+when you are there create two files: 
+
+input_data_location.txt 
+output_data_location.txt
+
+
+to run. Go to the experiments folder
+
+cd experiments
+
+then run your .sh file
+
+./runtest.sh

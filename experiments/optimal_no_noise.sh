@@ -1,8 +1,8 @@
 #!/bin/bash
 
-CACHE_SIZE=0.68212824
-FILES=(LRU_LFU_NO_Noise.txt LFU_LRU_NO_Noise.txt)
-ALGORITHMS=(LRU LFU ARC LaCReME)
+CACHE_SIZE=500
+FILES=(LRU_LFUx4_5NoiseResult.txt)
+ALGORITHMS=(LRU LFU ARC LeCaR)
 BLOCKSIZE=1
 
 for ((i=0;i<${#FILES[@]};++i)); do
