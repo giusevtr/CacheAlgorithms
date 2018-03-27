@@ -41,12 +41,9 @@ if len(sys.argv) > 1:
 
 print filename
 
-
-madmax_pollution =    '/home/giuseppe/CACHE_EXPERIMENTS/cache_output/%s_pollution_' + filename + '.npy'
-madmax_weights =    '/home/giuseppe/CACHE_EXPERIMENTS/cache_output/%s_weights_' + filename + '.npy' 
-madmax_performance =    '/home/giuseppe/CACHE_EXPERIMENTS/cache_output/%s_hit_rate_' + filename + '.npy'
-
-
+madmax_pollution =    OUTPUT_FOLDER+'%s_pollution_'+filename+'.npy'
+madmax_weights =    OUTPUT_FOLDER+'%s_weights_'+filename+'.npy'  
+madmax_performance =    OUTPUT_FOLDER+'%s_hit_rate_'+filename+'.npy' 
 
 lru_pollution = np.load(madmax_pollution % 'LRU')
 lfu_pollution = np.load(madmax_pollution % 'LFU')
