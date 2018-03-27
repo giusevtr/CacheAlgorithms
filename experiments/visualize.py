@@ -124,7 +124,7 @@ plt.legend(handles=[l1,l2,l3,l4],fancybox=True, framealpha=0.5,fontsize=8,loc='c
 
 
 if OUTPUT_FOLDER is not None:
-    outputpath = '%s%s.jpeg' % (OUTPUT_FOLDER,filename)
+    outputpath = '%s%s.png' % (OUTPUT_FOLDER,filename)
     plt.savefig(outputpath)
     print('Saving graph: ',outputpath)
 # plt.show()
