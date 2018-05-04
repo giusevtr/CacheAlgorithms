@@ -20,8 +20,8 @@ class RecencyAndFrequencyCacheList:
     
     def pageHitUpdate(self, page):
         self.cleanPQ()
-        assert page in self.CacheRecency and page in self.freq
-        self.CacheRecency.moveBack(page)
+        assert page in self.Cache and page in self.freq
+        self.Cache.moveBack(page)
         self.freq[page] += 1
         heapq.heappush(self.PQ, (self.freq[page],page))
     
@@ -87,8 +87,9 @@ class RecencyAndFrequencyCacheList:
             self.Hist2.add(cacheevict)
             
         if histevict is not None :
-            del self.evictionTime[histevict]
             del self.freq[histevict]
+            return histevict
+        return None
     
     def deleteHist1(self, page):
         self.Hist1.delete(page)

@@ -241,7 +241,7 @@ if __name__ == "__main__" :
     ######################
     ## Save image
     #######################
-    imagefilename = IMAGE_FOLDER + '%s_%s_%s.jpeg' % (experiment_name,cache_size_label,algorithms_used) 
+    imagefilename = IMAGE_FOLDER + '%s_%s_%s.png' % (experiment_name,cache_size_label,algorithms_used) 
     print 'Saving graph image ', imagefilename
     plt.savefig(imagefilename)
     
