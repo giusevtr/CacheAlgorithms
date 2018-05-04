@@ -29,6 +29,8 @@ from algorithms.LaCReME_T1T2 import LaCReME_T1T2
 from algorithms.LaCReME_v3 import LaCReME_v3
 from algorithms.LeCaR_unnorm import LeCaR_unnorm
 from algorithms.LeCaR import LeCaR
+from algorithms.LeCaR_q import LeCaR_q
+from algorithms.LeCaR2 import LeCaR2
 from algorithms.LeCaR_clock import LeCaR_clock
 # from algorithms.OLCR import OLCR
 
@@ -96,7 +98,11 @@ def GetAlgorithm(cache_size,name, visualization = False):
     elif lower_name == 'lecar_unnorm' :
         return LeCaR(cache_size)   
     elif lower_name == 'lecar_clock' :
-        return LeCaR_clock(cache_size)   
+        return LeCaR_clock(cache_size)
+    elif lower_name == 'lecar_q' :
+        return LeCaR_q(cache_size)  
+    elif lower_name == 'lecar2' :
+        return LeCaR2(cache_size)      
 #     elif lower_name == 'olcr' :
 #         return OLCR(cache_size)   
     

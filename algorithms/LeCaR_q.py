@@ -16,18 +16,17 @@ os.environ['TF_CPP_MIN_LOG_LEVEL'] = '3'
 ##      Every time we get a page hit, mark the page and also move it to the MRU position
 ## Page faults:
 ##      Evict an unmark page with the probability proportional to its position in the LRU list.
-class LeCaR(page_replacement_algorithm):
+class LeCaR_q(page_replacement_algorithm):
 
     def __init__(self, N, visualization = True):
         self.N = N
-        self.H = N/2
         self.CacheRecency = CacheLinkedList(N)
 
         self.freq = {}
         self.PQ = []
         
-        self.Hist1 = CacheLinkedList(self.H)        
-        self.Hist2 = CacheLinkedList(self.H)        
+        self.Hist1 = CacheLinkedList(N)        
+        self.Hist2 = CacheLinkedList(N)        
         
         ## Config variables
         self.error_discount_rate = (0.005)**(1.0/N)
@@ -45,6 +44,8 @@ class LeCaR(page_replacement_algorithm):
         self.Y1 = []
         self.Y2 = []
         
+        self.gamma = 0.05 # uniform distribution mixture parameter
+        self.q_used = {}
         self.unique = {}
         self.unique_cnt = 0
         self.pollution_dat_x = []
@@ -131,28 +132,25 @@ class LeCaR(page_replacement_algorithm):
         self.CacheRecency.delete(pg)
         
     
-    def getQ(self):
-        lamb = 0.05
-        return (1-lamb)*self.W + lamb
     ############################################
     ## Choose a page based on the q distribution
     ############################################
-    def chooseRandom(self):
+    def chooseRandom(self, q):
         r = np.random.rand()
-        if r < self.W[0] :
+        if r < q[0] :
             return 0
         return 1
     
     def addToHistory(self, poly, cacheevict):
         histevict = None
         if (poly == 0) or (poly==-1 and np.random.rand() <0.5):
-            if self.Hist1.size() == self.H  :
+            if self.Hist1.size() == self.N :
                 histevict = self.Hist1.getFront()
                 assert histevict in self.Hist1
                 self.Hist1.delete(histevict)
             self.Hist1.add(cacheevict)
         else:
-            if self.Hist2.size() == self.H  :
+            if self.Hist2.size() == self.N :
                 histevict = self.Hist2.getFront()
                 assert histevict in self.Hist2
                 self.Hist2.delete(histevict)
@@ -161,7 +159,8 @@ class LeCaR(page_replacement_algorithm):
         if histevict is not None :
             del self.evictionTime[histevict]
             del self.freq[histevict]
-    
+            del self.q_used[histevict]
+            
     ########################################################################################################################################
     ####REQUEST#############################################################################################################################
     ########################################################################################################################################
@@ -208,11 +207,11 @@ class LeCaR(page_replacement_algorithm):
             if page in self.Hist1:
                 pageevict = page
                 self.Hist1.delete(page)
-                reward[1] = self.error_discount_rate ** (self.time - self.evictionTime[pageevict])
+                reward[1] = self.error_discount_rate ** (self.time - self.evictionTime[pageevict]) / self.q_used[pageevict][0]
             elif page in self.Hist2:
                 pageevict = page
                 self.Hist2.delete(page)
-                reward[0] = self.error_discount_rate ** (self.time - self.evictionTime[pageevict])
+                reward[0] = self.error_discount_rate ** (self.time - self.evictionTime[pageevict])  / self.q_used[pageevict][1]
             
             #################
             ## Update Weights
@@ -229,10 +228,13 @@ class LeCaR(page_replacement_algorithm):
                 ################
                 ## Choose Policy
                 ################
-                act = self.chooseRandom()
+                
+                q = (1-self.gamma) * self.W + self.gamma / 2
+                
+                act = self.chooseRandom(q)
                 cacheevict,poly = self.selectEvictPage(act)
                 self.evictionTime[cacheevict] = self.time
-                
+                self.q_used[cacheevict] = q
                 ###################
                 ## Remove from Cache and Add to history
                 ###################
