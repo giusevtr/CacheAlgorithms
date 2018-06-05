@@ -32,7 +32,7 @@ class LeCaR_nD(page_replacement_algorithm):
         ## Config variables
         self.error_discount_rate = (0.005)**(1.0/N)
         self.learning_rate = 0.5
-        self.skip = False
+        self.counter = 0
         
         ## 
         self.evictionTime = {}
@@ -152,7 +152,20 @@ class LeCaR_nD(page_replacement_algorithm):
         #elif r < q[1]:
          #   return 1
         #return 2
-        return np.random.choice(range(len(q)), q)
+        if len(q) == 2:
+            r = np.random.rand()
+            if r < self.W[0] :
+                return 0
+            return 1
+        else: 
+            r = np.random.rand()
+            if r < self.W[0] :
+                return 0
+            elif r < self.W[1]:
+                return 1
+            return 2
+            
+        #return np.random.choice(range(len(q)), q)
     
     def addToHistory(self, poly, cacheevict):
         histevict = None
@@ -174,11 +187,14 @@ class LeCaR_nD(page_replacement_algorithm):
                 assert histevict in self.Hist3
                 self.Hist3.delete(histevict)
             self.Hist3.add(cacheevict)
+            #print ('H3', self.time, cacheevict)
+            self.evictionTime[cacheevict] = self.time
             
         if histevict is not None :
-            del self.evictionTime[histevict]
+            if not histevict in self.Hist3:
+                del self.evictionTime[histevict]
             del self.freq[histevict]
-            del self.q_used[histevict]
+
             
     ########################################################################################################################################
     ####REQUEST#############################################################################################################################
@@ -218,28 +234,31 @@ class LeCaR_nD(page_replacement_algorithm):
             page_fault = True
             for page_lists in (self.Hist1 ,self.Hist2 ,self.Hist3):
                 if page in page_lists:
-                    self.W[0] = self.W[0]/np.sum(self.W[0], self.W[1])
+                    self.W[0] = self.W[0]/(self.W[0] + self.W[1])
                     self.W[1] = 1 - self.W[0]
-                        
-                ################
-                ## Choose Policy
-                ################
-                 
-                q = (1-self.gamma) * self.W[0:2] + self.gamma / 2
-                act = self.chooseRandom(q)
-            else:
-                q = (1-self.gamma) * self.W + self.gamma / 2
-                act = self.chooseRandom(q)
+                            
+                    ################
+                    ## Choose Policy
+                    ################
+                    #print (q)
+                    q = (1-self.gamma) * self.W[0:2] + self.gamma 
+                    act = self.chooseRandom(q)
+                else:
+                    q = (1-self.gamma) * self.W + self.gamma
+                    act = self.chooseRandom(q)
+     
             
-            cacheevict,poly = self.selectEvictPage(act)
-            
-            if poly == 2:
+            if act == 2:
+                poly = 2
                 cacheevict = page
+                #print(page)
+                self.addToHistory(poly, cacheevict)
+                self.counter += 1
+                #self.evictionTime[cacheevict] = self.time
+                #print (self.evictionTime[cacheevict])
+                #print (cacheevict)
                 
-                addtoHistory(poly, cacheevict)
-                self.evictionTime[cacheevict] = self.time
-                self.q_used[cacheevict] = q
-            if poly != 2:       
+            if act != 2:       
                 #
                 #print q
             
@@ -252,18 +271,19 @@ class LeCaR_nD(page_replacement_algorithm):
                 if page in self.Hist1:
                     pageevict = page
                     self.Hist1.delete(page)
-                    reward[1] = self.error_discount_rate ** (self.time - self.evictionTime[pageevict]) / self.q_used[pageevict][1]
-                    reward[2] = self.error_discount_rate ** (self.time - self.evictionTime[pageevict])  / self.q_used[pageevict][2]
+                    reward[1] = self.error_discount_rate ** (self.time - self.evictionTime[pageevict])
+                    reward[2] = self.error_discount_rate ** (self.time - self.evictionTime[pageevict])
                 elif page in self.Hist2:
                     pageevict = page
                     self.Hist2.delete(page)
-                    reward[0] = self.error_discount_rate ** (self.time - self.evictionTime[pageevict])  / self.q_used[pageevict][0]
-                    reward[2] = self.error_discount_rate ** (self.time - self.evictionTime[pageevict])  / self.q_used[pageevict][2]
+                    reward[0] = self.error_discount_rate ** (self.time - self.evictionTime[pageevict])
+                    reward[2] = self.error_discount_rate ** (self.time - self.evictionTime[pageevict])
                 elif page in self.Hist3:
                     pageevict = page
                     self.Hist3.delete(page)
-                    reward[0] = self.error_discount_rate ** (self.time - self.evictionTime[pageevict])  / self.q_used[pageevict][0]
-                    reward[1] = self.error_discount_rate ** (self.time - self.evictionTime[pageevict])  / self.q_used[pageevict][1]
+                    #print (self.evictionTime[pageevict] , pageevict)
+                    reward[0] = self.error_discount_rate ** (self.time - self.evictionTime[pageevict])
+                    reward[1] = self.error_discount_rate ** (self.time - self.evictionTime[pageevict])
                 #################
                 ## Update Weights
                 #################
@@ -276,15 +296,15 @@ class LeCaR_nD(page_replacement_algorithm):
                 ####################
                 if self.CacheRecency.size() == self.N:
                     
-                   
+                    cacheevict,poly = self.selectEvictPage(act)
+                    
                     ###################
                     ## Remove from Cache and Add to history
                     ###################
                     self.evictPage(cacheevict)
                     self.addToHistory(poly, cacheevict)
                     self.evictionTime[cacheevict] = self.time
-                    self.q_used[cacheevict] = q
-                    
+                   
                 self.addToCache(page)
                 
             
