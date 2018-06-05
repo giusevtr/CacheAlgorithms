@@ -39,12 +39,13 @@ class LeCaR_nD(page_replacement_algorithm):
         
         ## Accounting variables
         self.time = 0
-        self.W = np.array([.5,.5, .5], dtype=np.float32)
+        self.W = np.array([.33,.33,.33], dtype=np.float32)
         
         self.Visualization = visualization
         self.X = []
         self.Y1 = []
         self.Y2 = []
+        self.Y3 = []
         
         self.gamma = 0.05 # uniform distribution mixture parameter
         self.q_used = {}
@@ -63,28 +64,30 @@ class LeCaR_nD(page_replacement_algorithm):
             X = np.array(self.X)
             Y1 = np.array(self.Y1)
             Y2 = np.array(self.Y2)
+            Y3 = np.array(self.Y3)
             ax = plt.subplot(2,1,1)
             ax.set_xlim(np.min(X), np.max(X))
             
             l3, = plt.plot(self.pollution_dat_x,self.pollution_dat_y, 'g-', label='hoarding',linewidth=3)
             l1, = plt.plot(X,Y1, 'y-', label='W_lru',linewidth=2)
             l2, = plt.plot(X,Y2, 'b-', label='W_lfu',linewidth=1)
+            l4, = plt.plot(X,Y3, 'g-', label='W_ncu',linewidth=1)
             
             
             
             lbl.append(l1)
             lbl.append(l2)
             lbl.append(l3)
-            
+            lbl.append(l4)
         return lbl
     
     def getWeights(self):
-        return np.array([self. X, self.Y1, self.Y2,self.pollution_dat_x,self.pollution_dat_y ]).T
+        return np.array([self. X, self.Y1, self.Y2, self.Y3, self.pollution_dat_x, self.pollution_dat_y ]).T
 #         return np.array([self.pollution_dat_x,self.pollution_dat_y ]).T
     
     def getStats(self):
         d={}
-        d['weights'] = np.array([self. X, self.Y1, self.Y2]).T
+        d['weights'] = np.array([self. X, self.Y1, self.Y2, self.Y3]).T
         d['pollution'] = np.array([self.pollution_dat_x, self.pollution_dat_y ]).T
         return d
     
@@ -116,38 +119,40 @@ class LeCaR_nD(page_replacement_algorithm):
     ## Get LFU or LFU page
     ######################    
     def selectEvictPage(self, policy):
-        r = self.CacheRecency.getFront()
-        f = self.getHeapMin()
         nd = None
         pageToEvit,policyUsed = None, None
-        if r == f :
-            pageToEvit,policyUsed = r,-1
-        elif policy == 0:
-            pageToEvit,policyUsed = r,0
-        elif policy == 1:
-            pageToEvit,policyUsed = f,1
-        elif policy == 2:
+        
+        if policy == 2:
             pageToEvit,policyUsed = nd,2
+        else:
+            r = self.CacheRecency.getFront()
+            f = self.getHeapMin()
+            if r == f :
+                pageToEvit,policyUsed = r,-1
+            elif policy == 0:
+                pageToEvit,policyUsed = r,0
+            elif policy == 1:
+                pageToEvit,policyUsed = f,1
+            
         
         return pageToEvit,policyUsed
     
     def evictPage(self, pg):
-        if pg is None :
-            self.skip = True
-        else :
-            self.CacheRecency.delete(pg)
+        assert pg in self.CacheRecency
+        self.CacheRecency.delete(pg)
         
     
     ############################################
     ## Choose a page based on the q distribution
     ############################################
     def chooseRandom(self, q):
-        r = np.random.rand()
-        if r < q[0] :
-            return 0
-        elif r < q[1]:
-            return 1
-        return 2
+        #r = np.random.rand()
+        #if r < q[0] :
+        #    return 0
+        #elif r < q[1]:
+         #   return 1
+        #return 2
+        return np.random.choice(range(len(q)), q)
     
     def addToHistory(self, poly, cacheevict):
         histevict = None
@@ -201,7 +206,7 @@ class LeCaR_nD(page_replacement_algorithm):
             self.X.append(self.time)
             self.Y1.append(self.W[0])
             self.Y2.append(self.W[1])
-            
+            self.Y3.append(self.W[2])
         
         ##########################
         ## Process page request 
@@ -209,65 +214,82 @@ class LeCaR_nD(page_replacement_algorithm):
         if page in self.CacheRecency:
             page_fault = False
             self.pageHitUpdate(page)
-        elif (self.skip == False) :
+        else :
+            page_fault = True
+            for page_lists in (self.Hist1 ,self.Hist2 ,self.Hist3):
+                if page in page_lists:
+                    self.W[0] = self.W[0]/np.sum(self.W[0], self.W[1])
+                    self.W[1] = 1 - self.W[0]
+                        
+                ################
+                ## Choose Policy
+                ################
+                 
+                q = (1-self.gamma) * self.W[0:2] + self.gamma / 2
+                act = self.chooseRandom(q)
+            else:
+                q = (1-self.gamma) * self.W + self.gamma / 2
+                act = self.chooseRandom(q)
             
+            cacheevict,poly = self.selectEvictPage(act)
+            
+            if poly == 2:
+                cacheevict = page
+                
+                addtoHistory(poly, cacheevict)
+                self.evictionTime[cacheevict] = self.time
+                self.q_used[cacheevict] = q
+            if poly != 2:       
+                #
+                #print q
             
             #####################################################
             ## Learning step: If there is a page fault in history
             #####################################################
-            pageevict = None
-
-            reward = np.array([0,0,0], dtype=np.float32)
-            if page in self.Hist1:
-                pageevict = page
-                self.Hist1.delete(page)
-                reward[1] = self.error_discount_rate ** (self.time - self.evictionTime[pageevict]) / self.q_used[pageevict][0]
-                reward[2] = self.error_discount_rate ** (self.time - self.evictionTime[pageevict])  / self.q_used[pageevict][2]
-            elif page in self.Hist2:
-                pageevict = page
-                self.Hist2.delete(page)
-                reward[0] = self.error_discount_rate ** (self.time - self.evictionTime[pageevict])  / self.q_used[pageevict][1]
-                reward[2] = self.error_discount_rate ** (self.time - self.evictionTime[pageevict])  / self.q_used[pageevict][2]
-            elif page in self.Hist3:
-                pageevict = page
-                self.Hist3.delete(page)
-                reward[0] = self.error_discount_rate ** (self.time - self.evictionTime[pageevict])  / self.q_used[pageevict][1]
-                reward[2] = self.error_discount_rate ** (self.time - self.evictionTime[pageevict])  / self.q_used[pageevict][2]
-            #################
-            ## Update Weights
-            #################
-            if pageevict is not None  :
-                self.W = self.W * np.exp(self.learning_rate * reward)
-                self.W = self.W / np.sum(self.W)
+                pageevict = None
+    
+                reward = np.array([0,0,0], dtype=np.float32)
+                if page in self.Hist1:
+                    pageevict = page
+                    self.Hist1.delete(page)
+                    reward[1] = self.error_discount_rate ** (self.time - self.evictionTime[pageevict]) / self.q_used[pageevict][1]
+                    reward[2] = self.error_discount_rate ** (self.time - self.evictionTime[pageevict])  / self.q_used[pageevict][2]
+                elif page in self.Hist2:
+                    pageevict = page
+                    self.Hist2.delete(page)
+                    reward[0] = self.error_discount_rate ** (self.time - self.evictionTime[pageevict])  / self.q_used[pageevict][0]
+                    reward[2] = self.error_discount_rate ** (self.time - self.evictionTime[pageevict])  / self.q_used[pageevict][2]
+                elif page in self.Hist3:
+                    pageevict = page
+                    self.Hist3.delete(page)
+                    reward[0] = self.error_discount_rate ** (self.time - self.evictionTime[pageevict])  / self.q_used[pageevict][0]
+                    reward[1] = self.error_discount_rate ** (self.time - self.evictionTime[pageevict])  / self.q_used[pageevict][1]
+                #################
+                ## Update Weights
+                #################
+                if pageevict is not None  :
+                    self.W = self.W * np.exp(self.learning_rate * reward)
+                    self.W = self.W / np.sum(self.W)
+                    
+                ####################
+                ## Remove from Cache
+                ####################
+                if self.CacheRecency.size() == self.N:
+                    
+                   
+                    ###################
+                    ## Remove from Cache and Add to history
+                    ###################
+                    self.evictPage(cacheevict)
+                    self.addToHistory(poly, cacheevict)
+                    self.evictionTime[cacheevict] = self.time
+                    self.q_used[cacheevict] = q
+                    
+                self.addToCache(page)
                 
-            ####################
-            ## Remove from Cache
-            ####################
-            if self.CacheRecency.size() == self.N:
-                
-                ################
-                ## Choose Policy
-                ################
-                self.gamma= self.gamma / np.sum(self.gamma + (1 - self.gamma))
-                q = (1-self.gamma) * self.W + self.gamma / 2
-                
-                act = self.chooseRandom(q)
-                cacheevict,poly = self.selectEvictPage(act)
-                self.evictionTime[cacheevict] = self.time
-                self.q_used[cacheevict] = q
-                print q
-                ###################
-                ## Remove from Cache and Add to history
-                ###################
-                self.evictPage(cacheevict)
-                self.addToHistory(poly, cacheevict)
-                
-            self.addToCache(page)
             
-            page_fault = True
-        
-        ## Count pollution
-        
+            ## Count pollution
+            
         
         if page_fault:
             self.unique_cnt += 1
