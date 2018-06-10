@@ -147,7 +147,7 @@ if __name__ == "__main__" :
         
         if visualizeInternalStatePlot:
             lbl = algo.visualize(plt)
-#             data_dict['%s_weights' % name] = algo.getWeights()
+            data_dict['%s_weights' % name] = algo.getWeights()
         else :
             lbl = []
         i += 1
@@ -178,10 +178,10 @@ if __name__ == "__main__" :
 
         sys.stdout.flush()
     ax.set_ylim(-0.05,1.05)
-#     plt.xlabel('Time')
+    plt.xlabel('Time')
     plt.ylabel('Weight')
-#     plt.legend(handles=labels,fancybox=True, framealpha=0.5)
-    plt.legend(handles=labels,fancybox=True, framealpha=0.5,fontsize=10,loc='center left', bbox_to_anchor=(1.1, 0.5))
+    plt.legend(handles=labels,fancybox=True, framealpha=0.5)
+#    plt.legend(handles=labels,fancybox=True, framealpha=0.5,fontsize=10,loc='center left', bbox_to_anchor=(1.1, 0.5))
     data = np.array(data)
 #     plt.subplots_adjust(left=0, bottom=0, right=1, top=1, wspace=0, hspace=0)
     

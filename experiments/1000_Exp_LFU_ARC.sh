@@ -1,8 +1,8 @@
 #!/bin/bash
 
-CACHE_SIZE=0.001
-FILES=(CAM-02-SRV-lvm0.csv-80000.csv)
-ALGORITHMS=(LRU LFU ARC LaCReME)
+CACHE_SIZE=1000
+FILES=(1000_Exp_LFU_ARC_LFU_ARCResult.txt)
+ALGORITHMS=(lru lfu arc LaCReMe)
 BLOCKSIZE=1
 
 for ((i=0;i<${#FILES[@]};++i)); do

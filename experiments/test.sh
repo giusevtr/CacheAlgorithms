@@ -1,8 +1,7 @@
 #!/bin/bash
-
-CACHE_SIZE=500
-FILES=(500_10000_LFU_LRUx100Result.txt)
-ALGORITHMS=(lru lfu arc LeCaR)
+CACHE_SIZE=0.05
+FILES=(casa2.blkparse)
+ALGORITHMS=(lru lfu arc lacreme)
 BLOCKSIZE=1
 
 for ((i=0;i<${#FILES[@]};++i)); do
