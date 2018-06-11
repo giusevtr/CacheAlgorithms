@@ -65,11 +65,11 @@ def run(param):
     hits, part_hit_rate, hit_sum = algo.test_algorithm(pages, partition_size= int(0.01*len(pages)))
     end = time.time()
     
-    result = "{:<20} {:<20} {:<20} {:<20} {:<20}  {:<20}".format(algorithm, round(100.0 * hits / num_pages,2), hits, num_pages, trace_obj.unique_pages(), round(end-start,3))
-    print(result)
+#     result = "{:<20} {:<20} {:<20} {:<20} {:<20}  {:<20}".format(algorithm, round(100.0 * hits / num_pages,2), hits, num_pages, trace_obj.unique_pages(), round(end-start,3))
+#     print(result)
     sys.stdout.flush()
         
-
+    return round(100.0 * hits / num_pages,2),  round(end-start,3)
 
 
 
@@ -78,32 +78,29 @@ if __name__ == "__main__" :
     
     keys = []
     values = []
-    
+    header = ""
     for line in config_file:
         if line.strip() == "":
             continue
         key, vals = line.strip().split(":")
-        
         keys.append(key)
         values.append(vals.split(","))
-        
+        header += "{:<25}".format(key[-20:])
+    
+    header += "{:<25}".format("hit rate")
+    
+    print(header)
     
     for vals in itertools.product(*tuple(values)):
-        print("========================================================")
-        print("========================================================")
         param = {}
-        key_lbl = ""
-        val_lbl = ""
+        parameters = ""
         for k, v in zip(keys, vals) :
-            key_lbl += "==\t%s\t\t\t\t" % k
-            val_lbl += "==\t%s\t\t\t\t" % v
-            print "== {:<25}{:<20}".format(k,v)
+            parameters += "{:<25}".format(v[-20:])
+#             print "== {:<25}".format(k,v)
             param[k] = v
         
-
-#         print(key_lbl)
-#         print(val_lbl)
-        print("== = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = =")
-        print("{:<20} {:<20} {:<20} {:<20} {:<20} {:<20}".format("Name","Hit Ratio(%)", "Hit Count", "Total Request","Unique Pages", "Time") )
-        run(param)
-        print("\n")
+        hit_rate, duration = run(param)
+        parameters += "{:<25}".format(hit_rate)
+        print(parameters)
+#         print("{:<20} {:<20} {:<20} {:<20} {:<20} {:<20}".format("Name","Hit Ratio(%)", "Hit Count", "Total Request","Unique Pages", "Time") )
+#         print("\n")
