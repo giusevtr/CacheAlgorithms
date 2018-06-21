@@ -58,7 +58,7 @@ def run(param):
     if algorithm.lower() == "lecar" :
         if "learning_rate" in param:
             algo.learning_rate = float(param['learning_rate'])
-        if "discount_rate" in param:
+        if "history_size" in param:
             algo.discount_rate = float(param['discount_rate'])
     
     start = time.time()

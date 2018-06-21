@@ -16,17 +16,6 @@ class Trace:
         self.vertical_lines = []
         
     def get_request(self):
-        # r = []
-        # for T in self.traces :
-        #
-        #     node_name = int(T['name'])
-        #     size = T['size']
-        #
-        #     for i in range(int(size / self.page_size)) :
-        #         r.append(self.get_node_id(node_name))
-        #         node_name += self.page_size
-
-
         return self.traces
 
     # def get_node_name(self, node_id):
