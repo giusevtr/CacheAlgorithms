@@ -3,7 +3,7 @@ import sys
 
 
 class page_replacement_algorithm :
-    def __init__(self, **args):
+    def __init__(self, params):
         self.learning_rate = None
         
     def request(self,page) :

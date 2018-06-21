@@ -18,10 +18,19 @@ os.environ['TF_CPP_MIN_LOG_LEVEL'] = '3'
 ##      Evict an unmark page with the probability proportional to its position in the LRU list.
 class LeCaR(page_replacement_algorithm):
 
-    def __init__(self, N, visualization = True):
-        self.N = N
-        self.H = N/2
-        self.CacheRecency = CacheLinkedList(N)
+#     def __init__(self, N, visualization = True):    
+    def __init__(self, param):
+        
+        assert 'cache_size' in param
+        assert 'history_size_multiple' in param
+        
+        self.N = int(param['cache_size'])
+        self.H = int(self.N * int(param['history_size_multiple'])/2)
+        self.learning_rate = float(param['learning_rate']) if 'learning_rate' in param else 0
+        self.Visualization = 'visualization' in param and bool(param['visualization'])
+        
+        
+        self.CacheRecency = CacheLinkedList(self.N)
 
         self.freq = {}
         self.PQ = []
@@ -29,18 +38,10 @@ class LeCaR(page_replacement_algorithm):
         self.Hist1 = CacheLinkedList(self.H)        
         self.Hist2 = CacheLinkedList(self.H)        
         
-        ## Config variables
-        self.error_discount_rate = (0.005)**(1.0/N)
-        self.learning_rate = 0.5
-        
-        ## 
-        self.evictionTime = {}
-        
         ## Accounting variables
         self.time = 0
         self.W = np.array([.5,.5], dtype=np.float32)
         
-        self.Visualization = visualization
         self.X = []
         self.Y1 = []
         self.Y2 = []
@@ -159,7 +160,6 @@ class LeCaR(page_replacement_algorithm):
             self.Hist2.add(cacheevict)
             
         if histevict is not None :
-            del self.evictionTime[histevict]
             del self.freq[histevict]
     
     ########################################################################################################################################
@@ -208,11 +208,11 @@ class LeCaR(page_replacement_algorithm):
             if page in self.Hist1:
                 pageevict = page
                 self.Hist1.delete(page)
-                reward[1] = self.error_discount_rate ** (self.time - self.evictionTime[pageevict])
+                reward[1] = 1
             elif page in self.Hist2:
                 pageevict = page
                 self.Hist2.delete(page)
-                reward[0] = self.error_discount_rate ** (self.time - self.evictionTime[pageevict])
+                reward[0] = 1
             
             #################
             ## Update Weights
@@ -231,7 +231,6 @@ class LeCaR(page_replacement_algorithm):
                 ################
                 act = self.chooseRandom()
                 cacheevict,poly = self.selectEvictPage(act)
-                self.evictionTime[cacheevict] = self.time
                 
                 ###################
                 ## Remove from Cache and Add to history

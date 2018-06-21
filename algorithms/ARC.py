@@ -8,12 +8,13 @@ import numpy as np
 ##      Evict an unmark page with the probability proportional to its position in the LRU list.
 class ARC(page_replacement_algorithm):
 
-    def __init__(self, N):
-        self.N = N
-        self.T1 = Disk(N)
-        self.T2 = Disk(N)
-        self.B1 = Disk(N)
-        self.B2 = Disk(2*N)
+    def __init__(self, param):
+        assert 'cache_size' in param
+        self.N = param['cache_size']
+        self.T1 = Disk(self.N)
+        self.T2 = Disk(self.N)
+        self.B1 = Disk(self.N)
+        self.B2 = Disk(2*self.N)
         self.P = 0
         
         self.time = 0

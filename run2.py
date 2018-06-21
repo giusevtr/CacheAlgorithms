@@ -22,8 +22,7 @@ def run(param):
     
     
     experiment_name = param['experiment_name']
-    cache_size_per = float(param['cache_size'])
-    algorithm = param['algorithm']
+    
     
     ###########################################################################
     ## Specify input folder
@@ -47,19 +46,20 @@ def run(param):
 
     unique_pages = trace_obj.unique_pages()
     
+    cache_size_per = float(param['cache_size'])
     if cache_size_per < 1:
-        cache_size = int(round(unique_pages*cache_size_per))
+        param['cache_size'] = int(round(unique_pages*cache_size_per))
     else :
-        cache_size = int(cache_size_per)
+        param['cache_size'] = int(cache_size_per)
     
     
-    algo = GetAlgorithm(cache_size, algorithm, visualization = False)
+    algo = GetAlgorithm(param['algorithm'])(param)
     
-    if algorithm.lower() == "lecar" :
-        if "learning_rate" in param:
-            algo.learning_rate = float(param['learning_rate'])
-        if "history_size" in param:
-            algo.discount_rate = float(param['discount_rate'])
+#     if algorithm.lower() == "lecar" :
+#         if "learning_rate" in param:
+#             algo.learning_rate = float(param['learning_rate'])
+#         if "history_size" in param:
+#             algo.history_size = float(param['history_size'])
     
     start = time.time()
     hits, part_hit_rate, hit_sum = algo.test_algorithm(pages, partition_size= int(0.01*len(pages)))

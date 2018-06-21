@@ -13,9 +13,11 @@ import numpy as np
 ##      Evict an unmark page with the probability proportional to its position in the LRU list.
 class LFU(page_replacement_algorithm):
 
-    def __init__(self, N,decay=1):
-        self.N = N
-        self.PQ = priorityqueue(N)
+    def __init__(self, param):
+        
+        assert 'cache_size' in param
+        self.N = int(param['cache_size'])
+        self.PQ = priorityqueue(self.N)
         
         self.unique = {}
         self.unique_cnt = 0
