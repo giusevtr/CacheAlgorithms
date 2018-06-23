@@ -18,38 +18,37 @@ os.environ['TF_CPP_MIN_LOG_LEVEL'] = '3'
 ##      Evict an unmark page with the probability proportional to its position in the LRU list.
 class LeCaR2(page_replacement_algorithm):
 
-    def __init__(self, N, visualization = True):
-        self.N = N
-        self.H = N
-        self.CacheRecency = CacheLinkedList(N)
+#     def __init__(self, N, visualization = True):    
+    def __init__(self, param):
+        
+        assert 'cache_size' in param
+        assert 'history_size_multiple' in param
+        
+        self.N = int(param['cache_size'])
+        self.H = int(self.N * int(param['history_size_multiple'])/2)
+        self.learning_rate = float(param['learning_rate']) if 'learning_rate' in param else 0
+        self.Visualization = 'visualization' in param and bool(param['visualization'])
+        
+        
+        self.CacheRecency = CacheLinkedList(self.N)
 
         self.freq = {}
         self.PQ = []
         
-        self.Hist = CacheLinkedList(self.H)        
-        
-        ## Config variables
-        self.error_discount_rate = (0.005)**(1.0/N)
-        self.learning_rate = 0.5
-        
-        ## 
-        self.evictionTime = {}
-        self.policyUsed = {}
+        self.Hist1 = CacheLinkedList(self.H)        
+        self.Hist2 = CacheLinkedList(self.H)        
         
         ## Accounting variables
         self.time = 0
         self.W = np.array([.5,.5], dtype=np.float32)
+        self.qUsed = {}
         
-        self.Visualization = visualization
         self.X = []
         self.Y1 = []
         self.Y2 = []
-        
-        self.unique = {}
-        self.unique_cnt = 0
-        self.pollution_dat_x = []
-        self.pollution_dat_y = []
-        
+    
+    def __contains__(self, q):
+        return q in self.CacheRecency
         
     def get_N(self) :
         return self.N
@@ -139,27 +138,29 @@ class LeCaR2(page_replacement_algorithm):
     ############################################
     def chooseRandom(self):
         r = np.random.rand()
-        if r < self.W[0] :
+        q = self.getQ()
+        if r < q[0] :
             return 0
         return 1
     
     def addToHistory(self, poly, cacheevict):
         histevict = None
-        
-        if (poly==-1):
-            poly = 0 if np.random.rand() <0.5 else 1
-        
-        if self.Hist.size() == self.H  :
-            histevict = self.Hist.getFront()
-            assert histevict in self.Hist
-            self.Hist.delete(histevict)
-        self.Hist.add(cacheevict)
-        self.policyUsed[cacheevict] = poly
+        if (poly == 0) or (poly==-1 and np.random.rand() <0.5):
+            if self.Hist1.size() == self.H  :
+                histevict = self.Hist1.getFront()
+                assert histevict in self.Hist1
+                self.Hist1.delete(histevict)
+            self.Hist1.add(cacheevict)
+        else:
+            if self.Hist2.size() == self.H  :
+                histevict = self.Hist2.getFront()
+                assert histevict in self.Hist2
+                self.Hist2.delete(histevict)
+            self.Hist2.add(cacheevict)
             
         if histevict is not None :
-            del self.evictionTime[histevict]
             del self.freq[histevict]
-            del self.policyUsed[histevict]
+            del self.qUsed[histevict]
     
     ########################################################################################################################################
     ####REQUEST#############################################################################################################################
@@ -202,19 +203,19 @@ class LeCaR2(page_replacement_algorithm):
             ## Learning step: If there is a page fault in history
             #####################################################
             pageevict = None
-            
-            
-            
+
             reward = np.array([0,0], dtype=np.float32)
-            if page in self.Hist:
+            if page in self.Hist1:
                 pageevict = page
-                self.Hist.delete(page)
-                
-                if self.policyUsed[page] == 0:
-                    reward[1] = self.error_discount_rate ** (self.time - self.evictionTime[pageevict])
-                else :
-                    reward[0] = self.error_discount_rate ** (self.time - self.evictionTime[pageevict])
-                    
+                self.Hist1.delete(page)
+                reward[1] = 1 * self.qUsed[page] ## punish
+            elif page in self.Hist2:
+                pageevict = page
+                self.Hist2.delete(page)
+                reward[0] = 1 * self.qUsed[page]
+            
+            
+            
             #################
             ## Update Weights
             #################
@@ -232,7 +233,7 @@ class LeCaR2(page_replacement_algorithm):
                 ################
                 act = self.chooseRandom()
                 cacheevict,poly = self.selectEvictPage(act)
-                self.evictionTime[cacheevict] = self.time
+                self.qUsed[cacheevict] = self.getQ()[poly]
                 
                 ###################
                 ## Remove from Cache and Add to history
@@ -243,22 +244,6 @@ class LeCaR2(page_replacement_algorithm):
             self.addToCache(page)
             
             page_fault = True
-        
-        ## Count pollution
-        
-        
-        if page_fault:
-            self.unique_cnt += 1
-        self.unique[page] = self.unique_cnt
-        
-        if self.time % self.N == 0:
-            pollution = 0
-            for pg in self.CacheRecency:
-                if self.unique_cnt - self.unique[pg] >= 2*self.N:
-                    pollution += 1
-            
-            self.pollution_dat_x.append(self.time)
-            self.pollution_dat_y.append(100* pollution / self.N)
         
         return page_fault
 

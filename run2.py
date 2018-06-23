@@ -12,7 +12,47 @@ warnings.filterwarnings("ignore")
 
 ANNOTATION_HEIGHT =0.7
 IMAGE_FOLDER='output/'
-    
+
+
+
+def test_algorithm(algo, pages,  partition_size = 10) :
+    hits = 0
+    last_percent = -1
+    num_pages = len(pages)
+
+    partition_hit_rate = []
+    hit_sum = []
+
+    # print ''
+    for i,p in enumerate(pages) :
+        
+        if p in algo :
+            hits += 1
+        
+        algo.request(p)
+
+        hit_sum.append(hits)
+
+        ## Progres
+        percent = int ((100.0 * (i+1) / num_pages))
+        if percent != last_percent and percent % 10 == 0 :
+            # print percent
+            bars = int(percent / 10)
+            sys.stdout.write('|')
+            for i in range(bars) :
+                sys.stdout.write('=')
+            for i in range(10 - bars ) :
+                sys.stdout.write(' ')
+            sys.stdout.write('|\r')
+            sys.stdout.flush()
+            last_percent = percent
+
+    for i in range(15 ) :
+        sys.stdout.write(' ')
+    sys.stdout.write('\r')
+
+    return hits,partition_hit_rate,hit_sum
+
 
 def run(param):
     assert "input_data_location" in param, "Error: parameter 'input_data_location' was not found"
@@ -62,7 +102,7 @@ def run(param):
 #             algo.history_size = float(param['history_size'])
     
     start = time.time()
-    hits, part_hit_rate, hit_sum = algo.test_algorithm(pages, partition_size= int(0.01*len(pages)))
+    hits, part_hit_rate, hit_sum = test_algorithm(algo, pages, partition_size= int(0.01*len(pages)))
     end = time.time()
     
 #     result = "{:<20} {:<20} {:<20} {:<20} {:<20}  {:<20}".format(algorithm, round(100.0 * hits / num_pages,2), hits, num_pages, trace_obj.unique_pages(), round(end-start,3))
@@ -93,7 +133,7 @@ if __name__ == "__main__" :
     
     for vals in itertools.product(*tuple(values)):
         param = {}
-        parameters = ""
+        parameters = "" 
         for k, v in zip(keys, vals) :
             parameters += "{:<25}".format(v[-20:])
 #             print "== {:<25}".format(k,v)

@@ -55,6 +55,9 @@ class LeCaR(page_replacement_algorithm):
     def get_N(self) :
         return self.N
     
+    def __contains__(self, q):
+        return q in self.CacheRecency
+    
     def visualize(self, plt):
         lbl = []
         if self.Visualization:
@@ -245,18 +248,18 @@ class LeCaR(page_replacement_algorithm):
         ## Count pollution
         
         
-        if page_fault:
-            self.unique_cnt += 1
-        self.unique[page] = self.unique_cnt
-        
-        if self.time % self.N == 0:
-            pollution = 0
-            for pg in self.CacheRecency:
-                if self.unique_cnt - self.unique[pg] >= 2*self.N:
-                    pollution += 1
-            
-            self.pollution_dat_x.append(self.time)
-            self.pollution_dat_y.append(100* pollution / self.N)
+#         if page_fault:
+#             self.unique_cnt += 1
+#         self.unique[page] = self.unique_cnt
+#         
+#         if self.time % self.N == 0:
+#             pollution = 0
+#             for pg in self.CacheRecency:
+#                 if self.unique_cnt - self.unique[pg] >= 2*self.N:
+#                     pollution += 1
+#             
+#             self.pollution_dat_x.append(self.time)
+#             self.pollution_dat_y.append(100* pollution / self.N)
         
         return page_fault
 

@@ -18,7 +18,6 @@ class LRU(page_replacement_algorithm):
         assert 'cache_size' in param
         self.N = param['cache_size']
         
-        self.T = []
         self.disk = CacheLinkedList(self.N)
         
         self.unique = {}
@@ -26,9 +25,12 @@ class LRU(page_replacement_algorithm):
         self.pollution_dat_x = []
         self.pollution_dat_y = []
         self.time = 0
-        
+    
     def get_N(self) :
         return self.N
+    
+    def __contains__(self, q):
+        return q in self.disk
     
     def getWeights(self):
 #         return np.array([self. X, self.Y1, self.Y2,self.pollution_dat_x,self.pollution_dat_y ]).T
@@ -59,13 +61,13 @@ class LRU(page_replacement_algorithm):
         
         self.unique[page] = self.unique_cnt
         
-        if self.time % self.N == 0:
-            pollution = 0
-            for pg in self.disk:
-                if self.unique_cnt - self.unique[pg] >= 2*self.N:
-                    pollution += 1
-            self.pollution_dat_x.append(self.time)
-            self.pollution_dat_y.append(100*pollution / self.N)
+#         if self.time % self.N == 0:
+#             pollution = 0
+#             for pg in self.disk:
+#                 if self.unique_cnt - self.unique[pg] >= 2*self.N:
+#                     pollution += 1
+#             self.pollution_dat_x.append(self.time)
+#             self.pollution_dat_y.append(100*pollution / self.N)
         
         return page_fault
 
