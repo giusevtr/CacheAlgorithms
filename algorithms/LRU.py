@@ -32,6 +32,9 @@ class LRU(page_replacement_algorithm):
     def __contains__(self, q):
         return q in self.disk
     
+    def visualize(self, ax):
+        pass
+    
     def getWeights(self):
 #         return np.array([self. X, self.Y1, self.Y2,self.pollution_dat_x,self.pollution_dat_y ]).T
         return np.array([self.pollution_dat_x,self.pollution_dat_y ]).T

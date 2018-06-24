@@ -27,8 +27,7 @@ class LeCaR(page_replacement_algorithm):
         self.N = int(param['cache_size'])
         self.H = int(self.N * int(param['history_size_multiple'])/2)
         self.learning_rate = float(param['learning_rate']) if 'learning_rate' in param else 0
-        self.Visualization = 'visualization' in param and bool(param['visualization'])
-        
+        self.Visualization = 'visualize' in param and bool(param['visualize'])
         
         self.CacheRecency = CacheLinkedList(self.N)
 
@@ -58,24 +57,27 @@ class LeCaR(page_replacement_algorithm):
     def __contains__(self, q):
         return q in self.CacheRecency
     
-    def visualize(self, plt):
+    def visualize(self, ax):
         lbl = []
         if self.Visualization:
             X = np.array(self.X)
             Y1 = np.array(self.Y1)
             Y2 = np.array(self.Y2)
-            ax = plt.subplot(2,1,1)
+#             ax = plt.subplot(2,1,1)
             ax.set_xlim(np.min(X), np.max(X))
             
-            l3, = plt.plot(self.pollution_dat_x,self.pollution_dat_y, 'g-', label='hoarding',linewidth=3)
-            l1, = plt.plot(X,Y1, 'y-', label='W_lru',linewidth=2)
-            l2, = plt.plot(X,Y2, 'b-', label='W_lfu',linewidth=1)
+#             l3, = plt.plot(self.pollution_dat_x,self.pollution_dat_y, 'g-', label='hoarding',linewidth=3)
+#             l1, = plt.plot(X,Y1, 'y-', label='W_lru',linewidth=2)
+#             l2, = plt.plot(X,Y2, 'b-', label='W_lfu',linewidth=1)
+            
+            ax.plot(X, Y1, 'y-', label='W_lru', linewidth=2)
+            ax.plot(X, Y2, 'b-', label='W_lfu', linewidth=1)
             
             
             
-            lbl.append(l1)
-            lbl.append(l2)
-            lbl.append(l3)
+#             lbl.append(l1)
+#             lbl.append(l2)
+#             lbl.append(l3)
             
         return lbl
     
@@ -211,11 +213,11 @@ class LeCaR(page_replacement_algorithm):
             if page in self.Hist1:
                 pageevict = page
                 self.Hist1.delete(page)
-                reward[1] = 1
+                reward[0] = -1
             elif page in self.Hist2:
                 pageevict = page
                 self.Hist2.delete(page)
-                reward[0] = 1
+                reward[1] = -1
             
             #################
             ## Update Weights

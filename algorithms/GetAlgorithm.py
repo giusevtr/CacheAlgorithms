@@ -10,8 +10,8 @@ from algorithms.ARC import ARC
 from algorithms.MARKING import MARKING
 from algorithms.FAR import FAR
 from algorithms.RANDOM import RANDOM
-from algorithms import LeCaR2.LeCaR
-from algorithms import LeCaR_temp.LeCaR2
+from algorithms.LeCaR import LeCaR
+from algorithms.LeCaR2 import LeCaR2
 from algorithms.LeCaR_clock import LeCaR_clock
 # from algorithms.OLCR import OLCR
 
@@ -38,7 +38,7 @@ def GetAlgorithm(name):
     elif lower_name == 'lecar_clock' :
         return LeCaR_clock
     elif lower_name == 'lecar2' :
-        return LeCaR_temp 
+        return LeCaR2 
     
     
     

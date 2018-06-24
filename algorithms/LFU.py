@@ -28,8 +28,12 @@ class LFU(page_replacement_algorithm):
     def get_N(self) :
         return self.N
     
+    
     def __contains__(self, q):
         return q in self.PQ
+    
+    def visualize(self, ax):
+        pass
     
     def getWeights(self):
 #         return np.array([self. X, self.Y1, self.Y2,self.pollution_dat_x,self.pollution_dat_y ]).T
