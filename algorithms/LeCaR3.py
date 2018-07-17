@@ -16,7 +16,7 @@ os.environ['TF_CPP_MIN_LOG_LEVEL'] = '3'
 ##      Every time we get a page hit, mark the page and also move it to the MRU position
 ## Page faults:
 ##      Evict an unmark page with the probability proportional to its position in the LRU list.
-class LeCaR(page_replacement_algorithm):
+class LeCaR3(page_replacement_algorithm):
 
 #     def __init__(self, N, visualization = True):
     def __init__(self, param):
@@ -26,7 +26,8 @@ class LeCaR(page_replacement_algorithm):
         self.N = int(param['cache_size'])
         self.H = int(self.N * int(param['history_size_multiple'])/2) if 'history_size_multiple' in param else self.N
         self.learning_rate = float(param['learning_rate']) if 'learning_rate' in param else 0
-        self.initial_weight = float(param['initial_weight']) if 'initial_weight' in param else 0.5
+        self.beta = float(param['beta']) if 'beta' in param else 1
+
         self.Visualization = 'visualize' in param and bool(param['visualize'])
 
         self.CacheRecency = CacheLinkedList(self.N)
@@ -39,7 +40,7 @@ class LeCaR(page_replacement_algorithm):
 
         ## Accounting variables
         self.time = 0
-        self.W = np.array([self.initial_weight,1-self.initial_weight], dtype=np.float32)
+        self.W = np.array([.5,.5], dtype=np.float32)
 
         self.X = []
         self.Y1 = []
@@ -50,12 +51,9 @@ class LeCaR(page_replacement_algorithm):
         self.pollution_dat_x = []
         self.pollution_dat_y = []
 
-        self.info = {
-                'lru_misses':0,
-                'lfu_misses':0,
-                'lru_count':0,
-                'lfu_count':0,
-            }
+        self.lru_hits = 0
+        self.lfu_hits = 0
+
 
     def get_N(self) :
         return self.N
@@ -78,15 +76,8 @@ class LeCaR(page_replacement_algorithm):
 
             ax.plot(X, Y1, 'y-', label='W_lru', linewidth=2)
             ax.plot(X, Y2, 'b-', label='W_lfu', linewidth=1)
-
-            print "lru_misses = ", self.info['lru_misses']
-            print "lru_count   = ", self.info['lru_count']
-            print "lfu_misses = ", self.info['lfu_misses']
-            print "lfu_count  = ", self.info['lfu_count']
-
-#             lbl.append(l1)
-#             lbl.append(l2)
-#             lbl.append(l3)
+            print("lru_hits = ", self.lru_hits)
+            print("lfu_hits = ", self.lfu_hits)
 
         return lbl
 
@@ -132,9 +123,9 @@ class LeCaR(page_replacement_algorithm):
         f = self.getHeapMin()
 
         pageToEvit,policyUsed = None, None
-        #if r == f :
-            #pageToEvit,policyUsed = r,-1
-        if policy == 0:
+        if r == f :
+            pageToEvit,policyUsed = r,-1
+        elif policy == 0:
             pageToEvit,policyUsed = r,0
         elif policy == 1:
             pageToEvit,policyUsed = f,1
@@ -166,14 +157,13 @@ class LeCaR(page_replacement_algorithm):
                 assert histevict in self.Hist1
                 self.Hist1.delete(histevict)
             self.Hist1.add(cacheevict)
-            self.info['lru_count'] += 1
         else:
             if self.Hist2.size() == self.H  :
                 histevict = self.Hist2.getFront()
                 assert histevict in self.Hist2
                 self.Hist2.delete(histevict)
             self.Hist2.add(cacheevict)
-            self.info['lfu_count'] += 1
+
 
         if histevict is not None :
             del self.freq[histevict]
@@ -213,29 +203,33 @@ class LeCaR(page_replacement_algorithm):
             page_fault = False
             self.pageHitUpdate(page)
         else :
+
+
             #####################################################
             ## Learning step: If there is a page fault in history
             #####################################################
             pageevict = None
 
             reward = np.array([0,0], dtype=np.float32)
+
             if page in self.Hist1:
                 pageevict = page
                 self.Hist1.delete(page)
-                reward[0] = -1
-                self.info['lru_misses'] +=1
-
+                reward[0] = -self.beta
+                beta = self.beta
+                self.lru_hits +=1
             elif page in self.Hist2:
                 pageevict = page
                 self.Hist2.delete(page)
                 reward[1] = -1
-                self.info['lfu_misses'] +=1
+                beta = 1
+                self.lfu_hits +=1
 
             #################
             ## Update Weights
             #################
             if pageevict is not None  :
-                self.W = self.W * np.exp(self.learning_rate * reward)
+                self.W = self.W * np.exp(self.learning_rate * reward) * beta
                 self.W = self.W / np.sum(self.W)
 
             ####################

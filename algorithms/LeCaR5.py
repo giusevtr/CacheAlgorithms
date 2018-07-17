@@ -16,7 +16,7 @@ os.environ['TF_CPP_MIN_LOG_LEVEL'] = '3'
 ##      Every time we get a page hit, mark the page and also move it to the MRU position
 ## Page faults:
 ##      Evict an unmark page with the probability proportional to its position in the LRU list.
-class LeCaR(page_replacement_algorithm):
+class LeCaR5(page_replacement_algorithm):
 
 #     def __init__(self, N, visualization = True):
     def __init__(self, param):
@@ -160,18 +160,20 @@ class LeCaR(page_replacement_algorithm):
 
     def addToHistory(self, poly, cacheevict):
         histevict = None
-        if (poly == 0) or (poly==-1 and np.random.rand() <0.5):
-            if self.Hist1.size() == self.H  :
+
+        if self.Hist1.size() + self.Hist2.size() == self.H :
+            p = 1.0 * self.Hist1.size() / (self.Hist1.size() + self.Hist2.size())
+            if np.random.rand() < p:
                 histevict = self.Hist1.getFront()
-                assert histevict in self.Hist1
                 self.Hist1.delete(histevict)
+            else:
+                histevict = self.Hist2.getFront()
+                self.Hist2.delete(histevict)
+
+        if (poly == 0) or (poly==-1 and np.random.rand() <0.5):
             self.Hist1.add(cacheevict)
             self.info['lru_count'] += 1
         else:
-            if self.Hist2.size() == self.H  :
-                histevict = self.Hist2.getFront()
-                assert histevict in self.Hist2
-                self.Hist2.delete(histevict)
             self.Hist2.add(cacheevict)
             self.info['lfu_count'] += 1
 

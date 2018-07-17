@@ -126,7 +126,7 @@ def run_experiment(keys, values, exp_num = 1):
         param = {}
         parameters = "" 
         for k, v in zip(keys, vals) :
-            parameters += "{:<20}".format(v[-20:])
+            parameters += "{:<20}".format(v[-20:].strip())
             param[k] = v
         
         hit_rate, duration = run(param, ax_weight, ax_hitrate)
@@ -173,7 +173,7 @@ if __name__ == "__main__" :
                 continue
             key, vals = line.strip().split(":")
             keys.append(key)
-            values.append(vals.split(","))
+            values.append(vals.strip().split(","))
             header += "{:<20}".format(key[-18:])
         
         if len(values)>0:
