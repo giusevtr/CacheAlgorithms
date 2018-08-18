@@ -16,7 +16,7 @@ os.environ['TF_CPP_MIN_LOG_LEVEL'] = '3'
 ##      Every time we get a page hit, mark the page and also move it to the MRU position
 ## Page faults:
 ##      Evict an unmark page with the probability proportional to its position in the LRU list.
-class LeCaR2(page_replacement_algorithm):
+class LeCaR8(page_replacement_algorithm):
 
 #     def __init__(self, N, visualization = True):
     def __init__(self, param):
@@ -42,7 +42,17 @@ class LeCaR2(page_replacement_algorithm):
         self.Hist2 = CacheLinkedList(self.H)
 
         
-             
+        self.PageCount = 0
+        self.CacheHit = 0
+        
+        self.PreviousHR = 0.0
+        self.NewHR = 0.0
+        self.PreviousChangeInHR =0.0
+        self.NewChangeInHR =0.0
+        self.CacheHitList = []
+        self.counter = 0
+
+       
 
 
         ## Accounting variables
@@ -79,9 +89,9 @@ class LeCaR2(page_replacement_algorithm):
             ax_w.plot(X,Y1, 'y-', label='W_lru', linewidth=2)
             ax_w.plot(X,Y2, 'b-', label='W_lfu', linewidth=1)
             #ax_h.plot(self.pollution_dat_x,self.pollution_dat_y, 'g-', label='hoarding',linewidth=3)
-            ax_h.plot(self.pollution_dat_x,self.pollution_dat_y, 'g-',linewidth=3)
+	    ax_h.plot(self.pollution_dat_x,self.pollution_dat_y, 'k-', linewidth=3)
 	    ax_h.set_ylabel('Hoarding')
-	    ax_w.legend(loc=" upper right")
+            ax_w.legend(loc=" upper right")
 
 
 #             lbl.append(l1)
@@ -187,6 +197,9 @@ class LeCaR2(page_replacement_algorithm):
         page_fault = False
         self.time = self.time + 1
 
+        self.counter += 1
+        self.PageCount += 1
+
         # print(self.PageCount)
 
         ###########################
@@ -213,10 +226,15 @@ class LeCaR2(page_replacement_algorithm):
         ##########################
         ## Process page request
         ##########################
+        if len(self.CacheHitList)> self.N:
+            del self.CacheHitList[0]
+        
         
         
         if page in self.CacheRecency:
             page_fault = False
+            self.CacheHit +=1
+            self.CacheHitList.append(1)
             
             self.pageHitUpdate(page)
         
@@ -227,7 +245,8 @@ class LeCaR2(page_replacement_algorithm):
             ## Learning step: If there is a page fault in history
             #####################################################
             pageevict = None
-            
+            self.CacheHitList.append(0)
+
             reward = np.array([0,0], dtype=np.float32)
             if page in self.Hist1:
                 pageevict = page
@@ -245,7 +264,30 @@ class LeCaR2(page_replacement_algorithm):
                 reward[1] = -self.discount_rate/(  (self.time-self.eTime[page]) *self.qUsed[page] ) 
 
 #                 reward[1] = -1 ## punish
-            
+            # print("Cache Hit", self.CacheHit)
+            # print("Previous Hit", self.PreviousHR)
+            # print("Current Hit", self.NewHR)
+            if self.counter >= self.N/3:
+                
+                # print("Inside",self.N/2)
+                self.NewHR = np.mean(self.CacheHitList)
+                # self.NewHR = self.CacheHit/ self.PageCount
+                self.NewChangeInHR= self.NewHR -self.PreviousHR
+                
+                if(self.NewChangeInHR > self.PreviousChangeInHR):
+                # if(self.NewHR > self.PreviousHR):
+                    self.learning_rate -= 0.1
+                    if self.learning_rate < 0.0:
+                        self.learning_rate = 0.25
+
+                else:
+                    self.learning_rate += 0.1
+                    if self.learning_rate > 1:
+                        self.learning_rate = 0.25
+                self.PreviousHR = self.NewHR
+                self.PreviousChangeInHR = self.NewChangeInHR
+                self.counter = 0
+              
           
 
             #################

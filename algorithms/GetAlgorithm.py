@@ -12,6 +12,8 @@ from algorithms.FAR import FAR
 from algorithms.RANDOM import RANDOM
 from algorithms.LeCaR import LeCaR
 from algorithms.LeCaR2 import LeCaR2
+from algorithms.LeCaR3 import LeCaR3
+from algorithms.LeCaR8 import LeCaR8
 from algorithms.LeCaR_clock import LeCaR_clock
 # from algorithms.OLCR import OLCR
 
@@ -34,13 +36,15 @@ def GetAlgorithm(name):
     elif lower_name == 'random' :
         return RANDOM
     elif lower_name == 'lecar' :
-        return LeCaR   
+        return LeCaR  
     elif lower_name == 'lecar_clock' :
         return LeCaR_clock
     elif lower_name == 'lecar2' :
         return LeCaR2 
-    
-    
+    elif lower_name == 'lecar3' :
+        return LeCaR3
+    elif lower_name == 'lecar8' :
+        return LeCaR8
     
     return None       
 
