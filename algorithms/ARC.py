@@ -27,6 +27,9 @@ class ARC(page_replacement_algorithm):
         self.pollution_dat_y = []
         
     
+    def __contains__(self, q):
+        return q in self.T1 or q in self.T2
+    
     def getWeights(self):
 #         return np.array([self. X, self.Y1, self.Y2,self.pollution_dat_x,self.pollution_dat_y ]).T
         return np.array([self.pollution_dat_x,self.pollution_dat_y ]).T
@@ -106,18 +109,18 @@ class ARC(page_replacement_algorithm):
             page_fault = True
         
         
-        if page_fault :
-            self.unique_cnt += 1
-        
-        self.unique[page] = self.unique_cnt
-        
-        if self.time % self.N == 0:
-            pollution = 0
-            for pg in self.T1.getData() + self.T2.getData():
-                if self.unique_cnt - self.unique[pg] >= 2*self.N:
-                    pollution += 1
-            self.pollution_dat_x.append(self.time)
-            self.pollution_dat_y.append(100 * pollution / self.N)
+#         if page_fault :
+#             self.unique_cnt += 1
+#         
+#         self.unique[page] = self.unique_cnt
+#         
+#         if self.time % self.N == 0:
+#             pollution = 0
+#             for pg in self.T1.getData() + self.T2.getData():
+#                 if self.unique_cnt - self.unique[pg] >= 2*self.N:
+#                     pollution += 1
+#             self.pollution_dat_x.append(self.time)
+#             self.pollution_dat_y.append(100 * pollution / self.N)
         
         
         return page_fault
