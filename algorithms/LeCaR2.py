@@ -27,19 +27,12 @@ class LeCaR2(page_replacement_algorithm):
         self.N = int(param['cache_size'])
         self.H = int(self.N * int(param['history_size_multiple'])/2)
         self.learning_rate = float(param['learning_rate']) if 'learning_rate' in param else 0
-<<<<<<< HEAD
         self.discount_rate = float(param['discount_rate']) if 'discount_rate' in param else 0
-=======
->>>>>>> fc934d47084bff1e69fbc5990c40840758d1b967
         self.Visualization = 'visualize' in param and bool(param['visualize'])
         self.lamb = 0.05
 
 
         self.CacheRecency = CacheLinkedList(self.N)
-<<<<<<< HEAD
-
-=======
->>>>>>> fc934d47084bff1e69fbc5990c40840758d1b967
 
         self.freq = {}
         self.PQ = []
@@ -47,13 +40,7 @@ class LeCaR2(page_replacement_algorithm):
         self.Hist1 = CacheLinkedList(self.H)
         self.Hist2 = CacheLinkedList(self.H)
 
-<<<<<<< HEAD
-        
-             
 
-
-=======
->>>>>>> fc934d47084bff1e69fbc5990c40840758d1b967
         ## Accounting variables
         self.time = 0
         self.W = np.array([.5,.5], dtype=np.float32)
@@ -65,31 +52,25 @@ class LeCaR2(page_replacement_algorithm):
         self.Y1 = []
         self.Y2 = []
 
-<<<<<<< HEAD
         self.unique = {}
         self.unique_cnt = 0
         self.pollution_dat_x = []
         self.pollution_dat_y = []
 
-=======
->>>>>>> fc934d47084bff1e69fbc5990c40840758d1b967
     def __contains__(self, q):
         return q in self.CacheRecency
 
     def get_N(self) :
         return self.N
 
-<<<<<<< HEAD
+
     def visualize(self, ax_w, ax_h):
-=======
-    def visualize(self, ax):
->>>>>>> fc934d47084bff1e69fbc5990c40840758d1b967
         lbl = []
         if self.Visualization:
             X = np.array(self.X)
             Y1 = np.array(self.Y1)
             Y2 = np.array(self.Y2)
-<<<<<<< HEAD
+
             ax_w.set_xlim(np.min(X), np.max(X))
             ax_h.set_xlim(np.min(X), np.max(X))
 
@@ -99,13 +80,6 @@ class LeCaR2(page_replacement_algorithm):
             ax_h.plot(self.pollution_dat_x,self.pollution_dat_y, 'g-',linewidth=3)
 	    ax_h.set_ylabel('Hoarding')
 	    ax_w.legend(loc=" upper right")
-=======
-            ax.set_xlim(np.min(X), np.max(X))
-
-            ax.plot(X,Y1, 'y-', label='W_lru', linewidth=2)
-            ax.plot(X,Y2, 'b-', label='W_lfu', linewidth=1)
-
->>>>>>> fc934d47084bff1e69fbc5990c40840758d1b967
 
 
 #             lbl.append(l1)
@@ -211,11 +185,8 @@ class LeCaR2(page_replacement_algorithm):
         page_fault = False
         self.time = self.time + 1
 
-<<<<<<< HEAD
         # print(self.PageCount)
 
-=======
->>>>>>> fc934d47084bff1e69fbc5990c40840758d1b967
         ###########################
         ## Clean up
         ## In case PQ get too large
@@ -248,16 +219,12 @@ class LeCaR2(page_replacement_algorithm):
             self.pageHitUpdate(page)
         
         else :
-<<<<<<< HEAD
-            
-=======
->>>>>>> fc934d47084bff1e69fbc5990c40840758d1b967
+
 
             #####################################################
             ## Learning step: If there is a page fault in history
             #####################################################
             pageevict = None
-<<<<<<< HEAD
             
             reward = np.array([0,0], dtype=np.float32)
             if page in self.Hist1:
@@ -277,29 +244,7 @@ class LeCaR2(page_replacement_algorithm):
 
 #                 reward[1] = -1 ## punish
             
-          
-=======
 
-            reward = np.array([0,0], dtype=np.float32)
-            if page in self.Hist1:
-                pageevict = page
-                self.Hist1.delete(page)
-                reward[0] = -1 / self.qUsed[page] ## punish
-#                 reward[0] = -0.99**(self.time-self.eTime[page]) / self.qUsed[page] ## punish
-
-#                 reward[0] = -1 ## punish
-
-            elif page in self.Hist2:
-                pageevict = page
-                self.Hist2.delete(page)
-                reward[1] = -1 / self.qUsed[page]
-
-#                 reward[1] = -0.99**(self.time-self.eTime[page]) / self.qUsed[page]
-
-#                 reward[1] = -1 ## punish
-
-
->>>>>>> fc934d47084bff1e69fbc5990c40840758d1b967
 
             #################
             ## Update Weights
@@ -334,7 +279,7 @@ class LeCaR2(page_replacement_algorithm):
             self.addToCache(page)
 
             page_fault = True
-<<<<<<< HEAD
+
          ## Count pollution
 
 
@@ -350,8 +295,7 @@ class LeCaR2(page_replacement_algorithm):
 
             self.pollution_dat_x.append(self.time)
             self.pollution_dat_y.append(100* pollution / self.N)
-=======
->>>>>>> fc934d47084bff1e69fbc5990c40840758d1b967
+
 
         return page_fault
 
