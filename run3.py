@@ -116,7 +116,7 @@ def run(param, ax_weight, ax_hoarding, ax_hitrate):
         ax_hitrate.set_xlim(0, len(hitrate))
         
         ax_hitrate.plot(range(len(hitrate)), hitrate,label=param['algorithm'], alpha=0.8)
-        algo.visualize(ax_weight,ax_hoarding)
+        algo.visualize(ax_weight,ax_hoarding, averaging_window_size)
     
     del pages[:]
         
@@ -134,7 +134,7 @@ def run_experiment(keys, values, exp_num = 1):
         algo_names = []
         hit_rates =[]
         exp_names =[]
-        ax_hitrate = plt.subplot2grid((3,2), (2,0), colspan=2)
+        ax_hitrate = plt.subplot2grid((5,1), (4,0))
         ax_weight = []
         
         formatter = FuncFormatter(millions)
@@ -145,8 +145,8 @@ def run_experiment(keys, values, exp_num = 1):
         i=0
         for vals in itertools.product(*tuple(values)):
             
-            ax_weight.append(plt.subplot2grid((3,2), (1,index_count)))
-            ax_weight.append(plt.subplot2grid((3,2), (0,index_count),sharex = ax_weight[i]))
+            ax_weight.append(plt.subplot2grid((5,1), (index_count,0)))
+            ax_weight.append(plt.subplot2grid((5,1), (index_count+1, 0),sharex = ax_weight[i]))
             ax_weight[i].xaxis.set_major_formatter(formatter)
             ax_weight[i+1].xaxis.set_major_formatter(formatter)
 
@@ -171,7 +171,7 @@ def run_experiment(keys, values, exp_num = 1):
             ax_weight[i].set_ylim(0,1.05)
             ax_weight[i].set_ylabel('Weight')
             ax_weight[i+1].set_title(param['algorithm'])
-            index_count +=1
+            index_count +=2
             i+= 2
 
         ax_hitrate.set_ylim(-0.05,1.05)        

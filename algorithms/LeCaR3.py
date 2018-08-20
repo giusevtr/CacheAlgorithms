@@ -265,9 +265,9 @@ class LeCaR3(page_replacement_algorithm):
         ## Count pollution
 
 
-         if page_fault:
+        if page_fault:
              self.unique_cnt += 1
-         self.unique[page] = self.unique_cnt
+        self.unique[page] = self.unique_cnt
 
         if self.time % self.N == 0:
              pollution = 0

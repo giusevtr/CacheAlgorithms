@@ -70,6 +70,9 @@ class LeCaR8(page_replacement_algorithm):
         self.unique_cnt = 0
         self.pollution_dat_x = []
         self.pollution_dat_y = []
+        self.pollution_dat_y_val = 0
+        self.pollution_dat_y_sum = []
+        self.pollution =0
 
     def __contains__(self, q):
         return q in self.CacheRecency
@@ -77,7 +80,7 @@ class LeCaR8(page_replacement_algorithm):
     def get_N(self) :
         return self.N
 
-    def visualize(self, ax_w, ax_h):
+    def visualize(self, ax_w, ax_h, averaging_window_size):
         lbl = []
         if self.Visualization:
             X = np.array(self.X)
@@ -89,9 +92,18 @@ class LeCaR8(page_replacement_algorithm):
             ax_w.plot(X,Y1, 'y-', label='W_lru', linewidth=2)
             ax_w.plot(X,Y2, 'b-', label='W_lfu', linewidth=1)
             #ax_h.plot(self.pollution_dat_x,self.pollution_dat_y, 'g-', label='hoarding',linewidth=3)
-	    ax_h.plot(self.pollution_dat_x,self.pollution_dat_y, 'k-', linewidth=3)
+	    #ax_h.plot(self.pollution_dat_x,self.pollution_dat_y, 'k-', linewidth=3)
 	    ax_h.set_ylabel('Hoarding')
             ax_w.legend(loc=" upper right")
+
+	    pollution_sums = self.getPollutions()
+            temp = np.append(np.zeros(averaging_window_size), pollution_sums[:-averaging_window_size])
+            pollutionrate = (pollution_sums-temp) / averaging_window_size
+        
+            ax_h.set_xlim(0, len(pollutionrate))
+        
+            ax_h.plot(range(len(pollutionrate)), pollutionrate, 'k-', linewidth=3)
+
 
 
 #             lbl.append(l1)
@@ -103,6 +115,9 @@ class LeCaR8(page_replacement_algorithm):
     def getWeights(self):
         return np.array([self. X, self.Y1, self.Y2,self.pollution_dat_x,self.pollution_dat_y ]).T
 #         return np.array([self.pollution_dat_x,self.pollution_dat_y ]).T
+    
+    def getPollutions(self):
+        return self.pollution_dat_y_sum
 
     def getStats(self):
         d={}
@@ -331,14 +346,15 @@ class LeCaR8(page_replacement_algorithm):
         self.unique[page] = self.unique_cnt
 
         if self.time % self.N == 0:
-            pollution = 0
+            self.pollution = 0
             for pg in self.CacheRecency:
                 if self.unique_cnt - self.unique[pg] >= 2*self.N:
-                    pollution += 1
+                    self.pollution += 1
 
             self.pollution_dat_x.append(self.time)
-            self.pollution_dat_y.append(100* pollution / self.N)
-
+            self.pollution_dat_y.append(100* self.pollution / self.N)
+        self.pollution_dat_y_val  += 100* self.pollution / self.N
+        self.pollution_dat_y_sum.append(self.pollution_dat_y_val)
         return page_fault
 
     def get_list_labels(self) :
