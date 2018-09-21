@@ -24,7 +24,7 @@ class LeCaR(page_replacement_algorithm):
         assert 'cache_size' in param
 
         self.N = int(param['cache_size'])
-        self.H = int(self.N * int(param['history_size_multiple'])/2) if 'history_size_multiple' in param else self.N
+        self.H = int(self.N * int(param['history_size_multiple'])) if 'history_size_multiple' in param else self.N
         self.learning_rate = float(param['learning_rate']) if 'learning_rate' in param else 0
         self.initial_weight = float(param['initial_weight']) if 'initial_weight' in param else 0.5
         self.Visualization = 'visualize' in param and bool(param['visualize'])
@@ -279,4 +279,3 @@ class LeCaR(page_replacement_algorithm):
 
     def get_list_labels(self) :
         return ['L']
-
