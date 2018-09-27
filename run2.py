@@ -145,9 +145,11 @@ def run_experiment(keys, values, exp_num = 1):
     
     plt.legend(fancybox=True, framealpha=0.5)
     
-    plt.savefig("output/%s_%d.png" % (sys.argv[config_idx], exp_num))
+    #imagefilename = IMAGE_FOLDER + '%s_%s_%s.png' % (experiment_name,cache_size,algorithm)
+    #plt.savefig(imagefilename)
+    #plt.savefig("output/%s_%d.png" % (sys.argv[config_idx], exp_num))
     
-    plt.clf()
+    #plt.clf()
 
 if __name__ == "__main__" :
     
@@ -163,7 +165,7 @@ if __name__ == "__main__" :
         for line in config_file:
             if line.strip() == "":
                 header += "{:<20}".format("hit rate")
-                print(header)
+                #print(header)
                 run_experiment(keys, values, exp_cnt)
                 exp_cnt += 1
                 del keys[:]
@@ -182,5 +184,5 @@ if __name__ == "__main__" :
             run_experiment(keys, values, exp_cnt)
         
                 
-#         print("{:<20} {:<20} {:<20} {:<20} {:<20} {:<20}".format("Name","Hit Ratio(%)", "Hit Count", "Total Request","Unique Pages", "Time") )
-#         print("\n")
+       #print("{:<20} {:<20} {:<20} {:<20} {:<20} {:<20}".format("Name","Hit Ratio(%)", "Hit Count", "Total Request","Unique Pages", "Time") )
+       #print("\n")

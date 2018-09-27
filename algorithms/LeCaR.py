@@ -25,10 +25,11 @@ class LeCaR(page_replacement_algorithm):
 
         self.N = int(param['cache_size'])
         self.H = int(self.N * int(param['history_size_multiple'])) if 'history_size_multiple' in param else self.N
+	self.discount_rate = float(param['discount_rate']) if 'discount_rate' in param else 1
         self.learning_rate = float(param['learning_rate']) if 'learning_rate' in param else 0
         self.initial_weight = float(param['initial_weight']) if 'initial_weight' in param else 0.5
         self.Visualization = 'visualize' in param and bool(param['visualize'])
-
+	self.discount_rate = 0.005 **(1/self.N)
         self.CacheRecency = CacheLinkedList(self.N)
 
         self.freq = {}
@@ -36,9 +37,11 @@ class LeCaR(page_replacement_algorithm):
 
         self.Hist1 = CacheLinkedList(self.H)
         self.Hist2 = CacheLinkedList(self.H)
+	np.random.seed(123)
 
         ## Accounting variables
         self.time = 0
+	self.eTime = {}
         self.W = np.array([self.initial_weight,1-self.initial_weight], dtype=np.float32)
 
         self.X = []
@@ -79,10 +82,10 @@ class LeCaR(page_replacement_algorithm):
             ax.plot(X, Y1, 'y-', label='W_lru', linewidth=2)
             ax.plot(X, Y2, 'b-', label='W_lfu', linewidth=1)
 
-            print "lru_misses = ", self.info['lru_misses']
-            print "lru_count   = ", self.info['lru_count']
-            print "lfu_misses = ", self.info['lfu_misses']
-            print "lfu_count  = ", self.info['lfu_count']
+            #print "lru_misses = ", self.info['lru_misses']
+            #print "lru_count   = ", self.info['lru_count']
+            #print "lfu_misses = ", self.info['lfu_misses']
+            #print "lfu_count  = ", self.info['lfu_count']
 
 #             lbl.append(l1)
 #             lbl.append(l2)
@@ -154,7 +157,7 @@ class LeCaR(page_replacement_algorithm):
     ############################################
     def chooseRandom(self):
         r = np.random.rand()
-        if r < self.W[0] :
+	if r < self.W[0] :
             return 0
         return 1
 
@@ -177,6 +180,7 @@ class LeCaR(page_replacement_algorithm):
 
         if histevict is not None :
             del self.freq[histevict]
+	    del self.eTime[histevict]
 
     ########################################################################################################################################
     ####REQUEST#############################################################################################################################
@@ -222,13 +226,15 @@ class LeCaR(page_replacement_algorithm):
             if page in self.Hist1:
                 pageevict = page
                 self.Hist1.delete(page)
-                reward[0] = -1
-                self.info['lru_misses'] +=1
+                #reward[0] = -1
+		reward[0] = -self.discount_rate **(self.time-self.eTime[page])                
+		self.info['lru_misses'] +=1
 
             elif page in self.Hist2:
                 pageevict = page
                 self.Hist2.delete(page)
-                reward[1] = -1
+                #reward[1] = -1
+		reward[1] = -self.discount_rate **(self.time-self.eTime[page])
                 self.info['lfu_misses'] +=1
 
             #################
@@ -252,6 +258,7 @@ class LeCaR(page_replacement_algorithm):
                 ###################
                 ## Remove from Cache and Add to history
                 ###################
+		self.eTime[cacheevict] = self.time
                 self.evictPage(cacheevict)
                 self.addToHistory(poly, cacheevict)
 
