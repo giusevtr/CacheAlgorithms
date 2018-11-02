@@ -14,11 +14,11 @@ import numpy as np
 class LFU(page_replacement_algorithm):
 
     def __init__(self, param):
-        
+
         assert 'cache_size' in param
         self.N = int(param['cache_size'])
         self.PQ = priorityqueue(self.N)
-        
+
         self.unique = {}
         self.unique_cnt = 0
         self.pollution_dat_x = []
@@ -27,27 +27,31 @@ class LFU(page_replacement_algorithm):
 
     def get_N(self) :
         return self.N
-    
-    
+
+
     def __contains__(self, q):
         return q in self.PQ
-    
+
     def visualize(self, ax):
         pass
-    
+
     def getWeights(self):
 #         return np.array([self. X, self.Y1, self.Y2,self.pollution_dat_x,self.pollution_dat_y ]).T
         return np.array([self.pollution_dat_x,self.pollution_dat_y ]).T
-    
+
     def getStats(self):
         d={}
         d['pollution'] = np.array([self.pollution_dat_x, self.pollution_dat_y ]).T
         return d
-    
+
     def request(self,page) :
+        #print "request = ", page
         page_fault = False
         self.time = self.time + 1
-        
+
+        print "request = ", page
+        self.print_state(self.PQ.getFreqDic().keys(), self.PQ.getFreqDic())
+
         if page in self.PQ :
 #         if self.PQ.contain(page) :
             page_fault = False
@@ -55,16 +59,17 @@ class LFU(page_replacement_algorithm):
         else :
             if self.PQ.size() == self.N:
                 ## Remove LRU page
-                self.PQ.popmin()
+                ep = self.PQ.popmin()
+                print "evict = ", ep
             self.PQ.add(page)
             page_fault = True
-        
-        
+
+
         if page_fault :
             self.unique_cnt += 1
-        
+
         self.unique[page] = self.unique_cnt
-#         
+#
 #         if self.time % self.N == 0:
 #             pollution = 0
 #             for pg in self.PQ.getData():
@@ -72,7 +77,7 @@ class LFU(page_replacement_algorithm):
 #                     pollution += 1
 #             self.pollution_dat_x.append(self.time)
 #             self.pollution_dat_y.append(100*pollution / self.N)
-#         
+#
         return page_fault
 
 
@@ -81,5 +86,3 @@ class LFU(page_replacement_algorithm):
 
     def get_list_labels(self) :
         return ['L']
-
-
