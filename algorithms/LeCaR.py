@@ -11,6 +11,7 @@ import os
 os.environ['TF_CPP_MIN_LOG_LEVEL'] = '3'
 # sys.path.append(os.path.abspath("/home/giuseppe/))
 
+
 ## Keep a LRU list.
 ## Page hits:
 ##      Every time we get a page hit, mark the page and also move it to the MRU position
@@ -25,11 +26,11 @@ class LeCaR(page_replacement_algorithm):
 
         self.N = int(param['cache_size'])
         self.H = int(self.N * int(param['history_size_multiple'])) if 'history_size_multiple' in param else self.N
-	self.discount_rate = float(param['discount_rate']) if 'discount_rate' in param else 1
+        self.discount_rate = float(param['discount_rate']) if 'discount_rate' in param else 1
         self.learning_rate = float(param['learning_rate']) if 'learning_rate' in param else 0
         self.initial_weight = float(param['initial_weight']) if 'initial_weight' in param else 0.5
         self.Visualization = 'visualize' in param and bool(param['visualize'])
-	self.discount_rate = 0.005 **(1/self.N)
+        self.discount_rate = 0.005 **(1/self.N)
         self.CacheRecency = CacheLinkedList(self.N)
 
         self.freq = {}
@@ -37,11 +38,11 @@ class LeCaR(page_replacement_algorithm):
 
         self.Hist1 = CacheLinkedList(self.H)
         self.Hist2 = CacheLinkedList(self.H)
-	np.random.seed(123)
+        np.random.seed(123)
 
         ## Accounting variables
         self.time = 0
-	self.eTime = {}
+        self.eTime = {}
         self.W = np.array([self.initial_weight,1-self.initial_weight], dtype=np.float32)
 
         self.X = []
@@ -116,14 +117,17 @@ class LeCaR(page_replacement_algorithm):
     ## Add a page to cache using policy 'poly'
     ##########################################
     def addToCache(self, page):
+        assert page not in self.CacheRecency, "Page already in cache"
         self.CacheRecency.add(page)
-        if page not in self.freq :
-            self.freq[page] = 0
+        # if page not in self.freq :
+            # self.freq[page] = 0
+        self.freq[page] = 0
+
         self.freq[page] += 1
         heapq.heappush(self.PQ, (self.freq[page],page))
 
     def getHeapMin(self):
-        while self.PQ[0][1] not in self.CacheRecency or self.freq[self.PQ[0][1]] != self.PQ[0][0] :
+        while self.PQ[0][1] not in self.CacheRecency or self.freq[self.PQ[0][1]] != self.PQ[0][0]:
             heapq.heappop(self.PQ)
         return self.PQ[0][1]
 
@@ -189,6 +193,9 @@ class LeCaR(page_replacement_algorithm):
         page_fault = False
         self.time = self.time + 1
 
+        #print "request = ", page
+        #self.print_state(self.CacheRecency, self.freq)
+
         ###########################
         ## Clean up
         ## In case PQ get too large
@@ -227,14 +234,14 @@ class LeCaR(page_replacement_algorithm):
                 pageevict = page
                 self.Hist1.delete(page)
                 #reward[0] = -1
-		reward[0] = -self.discount_rate **(self.time-self.eTime[page])                
-		self.info['lru_misses'] +=1
+                reward[0] = -self.discount_rate **(self.time-self.eTime[page])
+                self.info['lru_misses'] +=1
 
             elif page in self.Hist2:
                 pageevict = page
                 self.Hist2.delete(page)
                 #reward[1] = -1
-		reward[1] = -self.discount_rate **(self.time-self.eTime[page])
+                reward[1] = -self.discount_rate **(self.time-self.eTime[page])
                 self.info['lfu_misses'] +=1
 
             #################
@@ -258,9 +265,10 @@ class LeCaR(page_replacement_algorithm):
                 ###################
                 ## Remove from Cache and Add to history
                 ###################
-		self.eTime[cacheevict] = self.time
+                self.eTime[cacheevict] = self.time
                 self.evictPage(cacheevict)
                 self.addToHistory(poly, cacheevict)
+                #print "evict = ", cacheevict
 
             self.addToCache(page)
 
@@ -281,7 +289,7 @@ class LeCaR(page_replacement_algorithm):
 #
 #             self.pollution_dat_x.append(self.time)
 #             self.pollution_dat_y.append(100* pollution / self.N)
-
+        assert self.CacheRecency.size() <= self.N
         return page_fault
 
     def get_list_labels(self) :
